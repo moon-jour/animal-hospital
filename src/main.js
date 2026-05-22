@@ -11,12 +11,8 @@ const hospitalDisplayName = hospital.name.replace("동물", "<wbr />동물");
 const imageUrl = (filename) => `${import.meta.env.BASE_URL}images/${filename}`;
 const receptionImageUrl = imageUrl("main-reception.jpg");
 const logoImageUrl = imageUrl("hospital-symbol.jpeg");
-const doctorsImageUrl = imageUrl("doctors-profile.jpeg");
-const allHoursImageUrl = imageUrl("all-hours-card.jpeg");
-const surgeryImageUrl = imageUrl("surgery-specialty.jpeg");
-const rehabImageUrl = imageUrl("rehab-specialty.jpeg");
-const internalImageUrl = imageUrl("internal-specialty.jpeg");
-const hoursGuideImageUrl = imageUrl("hours-guide.jpeg");
+const hongDoctorImageUrl = imageUrl("doctor-hong-portrait.jpg");
+const kimDoctorImageUrl = imageUrl("doctor-kim-portrait.jpg");
 
 document.querySelector("#app").innerHTML = `
   <header class="site-header" aria-label="상단 메뉴">
@@ -144,9 +140,17 @@ document.querySelector("#app").innerHTML = `
               </div>
             </dl>
           </div>
-          <div class="hours-media-grid">
-            <img src="${hoursGuideImageUrl}" alt="24시수영동물의료센터 진료시간 안내" />
-            <img src="${allHoursImageUrl}" alt="24시간 365일 연중무휴 야간 응급 진료 안내" />
+          <div class="care-grid" aria-label="진료 운영 안내">
+            <article>
+              <span>24H</span>
+              <h3>야간 응급 진료</h3>
+              <p>갑작스러운 증상과 사고에도 내원이 가능하도록 24시간 응급 대응 체계를 운영합니다.</p>
+            </article>
+            <article>
+              <span>365</span>
+              <h3>연중무휴 운영</h3>
+              <p>주말과 공휴일에도 같은 기준으로 진료하며, 야간에는 전화 후 내원하시면 문을 열어드립니다.</p>
+            </article>
           </div>
         </div>
       </div>
@@ -158,31 +162,35 @@ document.querySelector("#app").innerHTML = `
         <h2>대학병원 출신 풀타임 전공의가 24시간 상주합니다.</h2>
         <p>외과 전문 전공의 의료진이 응급 상황부터 수술, 회복 관리까지 직접 살핍니다.</p>
       </div>
-      <div class="doctor-showcase">
-        <figure class="doctor-team-photo">
-          <img src="${doctorsImageUrl}" alt="홍정호 대표원장과 김민연 대표원장 소개 이미지" />
-          <figcaption>대학병원 출신 24시간 상주 풀타임 전공의</figcaption>
-        </figure>
-        <div class="doctor-summary">
-          <p class="role">FULL-TIME VETERINARIANS</p>
-          <h3>외과 전문 전공의 두 명이 함께 보는 진료.</h3>
-          <p>
-            홍정호 대표원장과 김민연 대표원장이 상주하며, 응급 진료와 외과 수술이 필요한 순간에도
-            진단부터 치료 계획, 회복 안내까지 한 흐름으로 설명합니다.
-          </p>
-          <div class="doctor-list" aria-label="대표원장 소개">
-            <article>
-              <span>홍정호 대표원장</span>
-              <strong>외과 전문 전공의</strong>
-              <p>응급 처치와 수술 상담에서 보호자가 이해하기 쉬운 치료 계획을 제안합니다.</p>
-            </article>
-            <article>
-              <span>김민연 대표원장</span>
-              <strong>외과 전문 전공의</strong>
-              <p>수술 전 평가부터 회복 관리까지 안정적인 치료 과정을 함께 설계합니다.</p>
-            </article>
+      <div class="doctor-showcase" aria-label="대표원장 소개">
+        <article class="doctor-profile-card">
+          <figure>
+            <img src="${hongDoctorImageUrl}" alt="홍정호 대표원장" />
+          </figure>
+          <div>
+            <p class="role">CHIEF VETERINARIAN</p>
+            <h3>홍정호 대표원장</h3>
+            <strong>외과 전문 전공의</strong>
+            <p>
+              응급 진료와 외과 수술이 필요한 순간에 진단부터 치료 계획까지 차분하게 설명합니다.
+              보호자가 이해할 수 있는 언어로 수술 전후 과정을 안내합니다.
+            </p>
           </div>
-        </div>
+        </article>
+        <article class="doctor-profile-card">
+          <figure>
+            <img src="${kimDoctorImageUrl}" alt="김민연 대표원장" />
+          </figure>
+          <div>
+            <p class="role">CHIEF VETERINARIAN</p>
+            <h3>김민연 대표원장</h3>
+            <strong>외과 전문 전공의</strong>
+            <p>
+              수술 전 평가와 회복 관리까지 이어지는 진료 흐름을 설계합니다.
+              응급 상황에서도 필요한 처치와 다음 단계를 명확하게 안내합니다.
+            </p>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -194,21 +202,21 @@ document.querySelector("#app").innerHTML = `
       </div>
       <div class="specialty-grid">
         <article class="specialty-card">
-          <img src="${surgeryImageUrl}" alt="외과 수술 전문 안내" />
+          <span>01</span>
           <div>
             <h3>외과 수술 전문</h3>
             <p>슬개골 탈구, 십자인대, 디스크, 종양 수술 등 정밀한 외과 치료를 제공합니다.</p>
           </div>
         </article>
         <article class="specialty-card">
-          <img src="${rehabImageUrl}" alt="재활 치료 전문 안내" />
+          <span>02</span>
           <div>
             <h3>재활 치료 전문</h3>
             <p>침 치료, 레이저 치료, 수중 재활로 수술 후 회복과 만성 통증 관리를 돕습니다.</p>
           </div>
         </article>
         <article class="specialty-card">
-          <img src="${internalImageUrl}" alt="내과 특화 진료 안내" />
+          <span>03</span>
           <div>
             <h3>내과 특화 진료</h3>
             <p>심장, 신장, 간담도계 질환처럼 꾸준한 관리가 필요한 내과 질환을 세심하게 봅니다.</p>
