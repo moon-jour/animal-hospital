@@ -47,20 +47,6 @@ document.querySelector("#app").innerHTML = `
             <a class="button button--primary" href="#hours">진료시간 보기</a>
             <a class="button button--ghost" href="#doctors">의료진 소개</a>
           </div>
-          <dl class="hero__facts" aria-label="병원 주요 정보">
-            <div>
-              <dt>운영</dt>
-              <dd>365일 24시간</dd>
-            </div>
-            <div>
-              <dt>의료진</dt>
-              <dd>풀타임 전공의</dd>
-            </div>
-            <div>
-              <dt>특화</dt>
-              <dd>외과, 내과, 재활</dd>
-            </div>
-          </dl>
         </div>
       </section>
 

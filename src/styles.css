@@ -341,32 +341,6 @@ img {
   border-color: var(--linen);
 }
 
-.hero__facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(660px, 100%);
-  margin: 54px 0 0;
-  padding: 22px 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.24);
-  gap: 22px;
-}
-
-.hero__facts div {
-  min-width: 0;
-}
-
-.hero__facts dt {
-  color: rgba(255, 255, 255, 0.64);
-  font-size: 0.83rem;
-}
-
-.hero__facts dd {
-  margin: 7px 0 0;
-  color: var(--linen);
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-
 .notice-band {
   display: flex;
   align-items: center;
@@ -975,7 +949,6 @@ footer {
     width: 100%;
   }
 
-  .hero__facts,
   .feature-grid,
   .care-grid,
   .specialty-grid {
