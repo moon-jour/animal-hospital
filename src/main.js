@@ -29,7 +29,7 @@ document.querySelector("#app").innerHTML = `
   </header>
 
   <main id="top" style="--reception-image: url('${receptionImageUrl}')">
-    <div class="snap-chapter snap-chapter--home" data-snap-section>
+    <div class="reveal-section reveal-section--home is-visible" data-reveal-section>
       <section class="hero" aria-label="병원 메인 이미지">
         <div class="hero__content">
           <p class="eyebrow">NEWLY OPENED 24H ANIMAL MEDICAL CENTER</p>
@@ -67,7 +67,7 @@ document.querySelector("#app").innerHTML = `
       </section>
     </div>
 
-    <section class="section intro snap-chapter" id="about" data-snap-section>
+    <section class="section intro reveal-section" id="about" data-reveal-section>
       <div class="section-kicker">ABOUT</div>
       <div class="split">
         <div>
@@ -103,7 +103,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section section--dark snap-chapter" id="hours" data-snap-section>
+    <section class="section section--dark reveal-section" id="hours" data-reveal-section>
       <div class="section-kicker">HOURS</div>
       <div class="split split--center">
         <div>
@@ -135,7 +135,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section doctors snap-chapter" id="doctors" data-snap-section data-free-scroll>
+    <section class="section doctors reveal-section" id="doctors" data-reveal-section>
       <div class="section-kicker">DOCTORS</div>
       <div class="section-heading">
         <h2>두 명의 의료진이 진료의 처음부터 회복까지 함께 살핍니다.</h2>
@@ -175,7 +175,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section services snap-chapter" aria-label="진료 과목" data-snap-section>
+    <section class="section services reveal-section" aria-label="진료 과목" data-reveal-section>
       <div class="service-list">
         <article>
           <h3>예방의학</h3>
@@ -196,7 +196,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section space snap-chapter" id="space" data-snap-section>
+    <section class="section space reveal-section" id="space" data-reveal-section>
       <div class="section-kicker">SPACE</div>
       <div class="space-layout">
         <div>
@@ -213,7 +213,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="contact snap-chapter" id="contact" aria-label="문의" data-snap-section>
+    <section class="contact reveal-section" id="contact" aria-label="문의" data-reveal-section>
       <div>
         <p class="eyebrow">CONTACT</p>
         <h2>진료가 필요한 순간, 편하게 문의하세요.</h2>
@@ -238,118 +238,26 @@ document.querySelector("#app").innerHTML = `
 document.querySelector("#year").textContent = new Date().getFullYear();
 
 const siteHeader = document.querySelector(".site-header");
-const snapSections = Array.from(document.querySelectorAll("[data-snap-section]"));
-const snapMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-const mobileSnapQuery = window.matchMedia("(max-width: 680px)");
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const scrollTopButton = document.querySelector(".scroll-top-button");
-let isChapterSnapping = false;
-let chapterSnapTimer = 0;
+const revealSections = Array.from(document.querySelectorAll("[data-reveal-section]"));
 
 const getHeaderHeight = () => siteHeader?.getBoundingClientRect().height ?? 0;
 
-const getSectionTop = (section) =>
-  Math.max(0, section.getBoundingClientRect().top + window.scrollY - getHeaderHeight());
-
-const snapToSection = (section, behavior = "smooth") => {
-  if (!section) {
-    return;
+const getTargetTop = (target) => {
+  if (!target || target === document.body) {
+    return 0;
   }
 
-  isChapterSnapping = true;
-  window.clearTimeout(chapterSnapTimer);
-  window.scrollTo({ top: getSectionTop(section), behavior });
-  chapterSnapTimer = window.setTimeout(() => {
-    isChapterSnapping = false;
-  }, behavior === "smooth" ? 820 : 0);
+  return Math.max(0, target.getBoundingClientRect().top + window.scrollY - getHeaderHeight());
 };
 
-const getActiveSnapIndex = (direction = 1) => {
-  const headerHeight = getHeaderHeight();
-  const viewportTop = window.scrollY + headerHeight;
-  const probeY =
-    direction < 0
-      ? viewportTop + 8
-      : viewportTop + Math.min(window.innerHeight * 0.34, 260);
-  let closestIndex = 0;
-  let closestDistance = Number.POSITIVE_INFINITY;
-
-  if (direction < 0) {
-    for (const [index, section] of snapSections.entries()) {
-      const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-
-      if (sectionTop <= probeY) {
-        closestIndex = index;
-      }
-    }
-
-    return closestIndex;
-  }
-
-  for (const [index, section] of snapSections.entries()) {
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-    const sectionBottom = sectionTop + section.offsetHeight;
-
-    if (probeY >= sectionTop && probeY < sectionBottom) {
-      return index;
-    }
-
-    const distance = Math.abs(sectionTop - probeY);
-    if (distance < closestDistance) {
-      closestDistance = distance;
-      closestIndex = index;
-    }
-  }
-
-  return closestIndex;
+const scrollToTarget = (target, behavior = "smooth") => {
+  window.scrollTo({
+    top: getTargetTop(target),
+    behavior: reducedMotionQuery.matches ? "auto" : behavior,
+  });
 };
-
-const canScrollInsideSection = (section, direction) => {
-  if (!section) {
-    return false;
-  }
-
-  if (mobileSnapQuery.matches && !section.hasAttribute("data-free-scroll")) {
-    return false;
-  }
-
-  const headerHeight = getHeaderHeight();
-  const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-  const sectionBottom = sectionTop + section.offsetHeight;
-  const viewportTop = window.scrollY + headerHeight;
-  const viewportBottom = window.scrollY + window.innerHeight;
-  const readableViewport = window.innerHeight - headerHeight;
-  const hasLongContent = section.offsetHeight > readableViewport + 180;
-
-  if (!hasLongContent) {
-    return false;
-  }
-
-  if (direction > 0) {
-    return sectionBottom > viewportBottom + 42;
-  }
-
-  return sectionTop < viewportTop - 42;
-};
-
-const snapToAdjacentSection = (direction) => {
-  const activeIndex = getActiveSnapIndex(direction);
-  const activeSection = snapSections[activeIndex];
-
-  if (canScrollInsideSection(activeSection, direction)) {
-    return false;
-  }
-
-  const nextIndex = Math.min(Math.max(activeIndex + direction, 0), snapSections.length - 1);
-
-  if (nextIndex === activeIndex) {
-    return false;
-  }
-
-  snapToSection(snapSections[nextIndex]);
-  return true;
-};
-
-const isChapterSnapEnabled = () => snapSections.length > 1 && !snapMotionQuery.matches;
 
 const updateScrollTopButton = () => {
   if (!scrollTopButton) {
@@ -372,16 +280,8 @@ const goToPageTop = () => {
   }
 
   lastTopRequest = now;
-  isChapterSnapping = true;
-  window.clearTimeout(chapterSnapTimer);
-  window.scrollTo({
-    top: 0,
-    behavior: snapMotionQuery.matches ? "auto" : "smooth",
-  });
-  chapterSnapTimer = window.setTimeout(() => {
-    isChapterSnapping = false;
-    updateScrollTopButton();
-  }, snapMotionQuery.matches ? 0 : 820);
+  scrollToTarget(document.body);
+  window.setTimeout(updateScrollTopButton, reducedMotionQuery.matches ? 0 : 620);
 };
 
 scrollTopButton?.addEventListener("pointerup", (event) => {
@@ -400,108 +300,6 @@ scrollTopButton?.addEventListener("keydown", (event) => {
   goToPageTop();
 });
 
-let wheelDelta = 0;
-let wheelResetTimer = 0;
-
-window.addEventListener(
-  "wheel",
-  (event) => {
-    if (
-      !isChapterSnapEnabled() ||
-      event.ctrlKey ||
-      Math.abs(event.deltaX) > Math.abs(event.deltaY)
-    ) {
-      return;
-    }
-
-    const delta = event.deltaY * (event.deltaMode === 1 ? 18 : event.deltaMode === 2 ? window.innerHeight : 1);
-    const direction = Math.sign(delta);
-
-    if (!direction) {
-      return;
-    }
-
-    if (isChapterSnapping) {
-      event.preventDefault();
-      return;
-    }
-
-    const activeSection = snapSections[getActiveSnapIndex(direction)];
-    if (canScrollInsideSection(activeSection, direction)) {
-      wheelDelta = 0;
-      return;
-    }
-
-    event.preventDefault();
-    wheelDelta += delta;
-    window.clearTimeout(wheelResetTimer);
-    wheelResetTimer = window.setTimeout(() => {
-      wheelDelta = 0;
-    }, 160);
-
-    if (Math.abs(wheelDelta) >= 70) {
-      snapToAdjacentSection(direction);
-      wheelDelta = 0;
-    }
-  },
-  { passive: false },
-);
-
-let touchStartX = 0;
-let touchStartY = 0;
-
-window.addEventListener(
-  "touchstart",
-  (event) => {
-    if (!isChapterSnapEnabled() || event.touches.length !== 1) {
-      return;
-    }
-
-    touchStartX = event.touches[0].clientX;
-    touchStartY = event.touches[0].clientY;
-  },
-  { passive: true },
-);
-
-window.addEventListener(
-  "touchmove",
-  (event) => {
-    if (!isChapterSnapEnabled() || isChapterSnapping || event.touches.length !== 1) {
-      return;
-    }
-
-    const deltaX = touchStartX - event.touches[0].clientX;
-    const deltaY = touchStartY - event.touches[0].clientY;
-    const direction = Math.sign(deltaY);
-
-    if (!direction || Math.abs(deltaY) < 10 || Math.abs(deltaX) > Math.abs(deltaY)) {
-      return;
-    }
-
-    const activeSection = snapSections[getActiveSnapIndex(direction)];
-    if (!canScrollInsideSection(activeSection, direction) && event.cancelable) {
-      event.preventDefault();
-    }
-  },
-  { passive: false },
-);
-
-window.addEventListener("touchend", (event) => {
-  if (!isChapterSnapEnabled() || isChapterSnapping || !event.changedTouches.length) {
-    return;
-  }
-
-  const deltaX = touchStartX - event.changedTouches[0].clientX;
-  const deltaY = touchStartY - event.changedTouches[0].clientY;
-  const direction = Math.sign(deltaY);
-
-  if (!direction || Math.abs(deltaY) < 58 || Math.abs(deltaX) > Math.abs(deltaY)) {
-    return;
-  }
-
-  snapToAdjacentSection(direction);
-});
-
 document.querySelectorAll('a[href^="#"]').forEach((link) => {
   link.addEventListener("click", (event) => {
     const target = document.querySelector(link.getAttribute("href"));
@@ -511,14 +309,41 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
     }
 
     event.preventDefault();
-    snapToSection(target);
+    scrollToTarget(target);
   });
 });
+
+if ("IntersectionObserver" in window && !reducedMotionQuery.matches) {
+  const revealObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
+        }
+      }
+    },
+    {
+      rootMargin: "0px 0px -16% 0px",
+      threshold: 0.12,
+    },
+  );
+
+  for (const section of revealSections) {
+    if (!section.classList.contains("is-visible")) {
+      revealObserver.observe(section);
+    }
+  }
+} else {
+  for (const section of revealSections) {
+    section.classList.add("is-visible");
+  }
+}
 
 const hero = document.querySelector(".hero");
 const canAnimateHero =
   window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
-  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  !reducedMotionQuery.matches;
 
 if (hero && canAnimateHero) {
   let animationFrame = 0;
