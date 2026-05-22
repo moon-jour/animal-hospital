@@ -9,6 +9,12 @@ npm install
 npm run dev
 ```
 
+## 테스트
+
+```bash
+npm test
+```
+
 ## 배포
 
 Vercel에서 이 폴더를 프로젝트로 연결하면 `npm run build` 후 `dist`가 배포됩니다.

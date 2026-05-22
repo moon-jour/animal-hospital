@@ -264,7 +264,7 @@ const updateScrollTopButton = () => {
     return;
   }
 
-  scrollTopButton.classList.toggle("is-visible", window.scrollY > window.innerHeight * 0.45);
+  scrollTopButton.classList.toggle("is-at-top", window.scrollY <= 8);
 };
 
 window.addEventListener("scroll", updateScrollTopButton, { passive: true });

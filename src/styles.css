@@ -774,14 +774,13 @@ footer {
   background: rgba(42, 35, 30, 0.84);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
   cursor: pointer;
-  opacity: 0;
-  transform: translateY(14px) scale(0.94);
+  opacity: 0.96;
+  transform: translateY(0) scale(1);
   transition:
     opacity 180ms ease,
     transform 180ms ease,
     background 180ms ease,
     border-color 180ms ease;
-  pointer-events: none;
   backdrop-filter: blur(16px);
 }
 
@@ -791,16 +790,16 @@ footer {
   line-height: 1;
 }
 
-.scroll-top-button.is-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
+.scroll-top-button.is-at-top {
+  opacity: 0.52;
+  transform: translateY(0) scale(0.96);
 }
 
 .scroll-top-button:hover,
 .scroll-top-button:focus-visible {
   border-color: rgba(214, 189, 131, 0.72);
   background: rgba(58, 49, 43, 0.94);
+  opacity: 1;
   outline: none;
   transform: translateY(-2px) scale(1);
 }
