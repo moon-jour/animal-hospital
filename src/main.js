@@ -74,10 +74,10 @@ document.querySelector("#app").innerHTML = `
     </div>
 
     <section class="section intro reveal-section" id="about" data-reveal-section>
-      <div class="section-kicker">ABOUT</div>
+      <div class="section-kicker">SUYEONG'S SPECIALITIES</div>
       <div class="split">
         <div>
-          <h2>편안하게 머물 수 있는 공간에서, 필요한 진료를 정확하게.</h2>
+          <h2>전문 의료진과 차분한 공간, 필요한 진료를 한 곳에서.</h2>
         </div>
         <div class="copy-stack">
           <p>
@@ -93,8 +93,8 @@ document.querySelector("#app").innerHTML = `
       <div class="feature-grid" aria-label="병원 특징">
         <article>
           <span>01</span>
-          <h3>24시간 케어</h3>
-          <p>낮과 밤의 경계 없이 필요한 순간에 진료를 받을 수 있도록 운영합니다.</p>
+          <h3>전문 의료진</h3>
+          <p>외과 전문 전공의가 상주하며 응급 상황부터 수술 상담까지 직접 살핍니다.</p>
         </article>
         <article>
           <span>02</span>
@@ -103,6 +103,11 @@ document.querySelector("#app").innerHTML = `
         </article>
         <article>
           <span>03</span>
+          <h3>분야별 진료</h3>
+          <p>외과, 재활, 내과, 응급 진료를 한 흐름으로 연결해 치료 방향을 세웁니다.</p>
+        </article>
+        <article>
+          <span>04</span>
           <h3>안정적인 공간</h3>
           <p>어두운 베이지 톤의 조용한 인테리어로 대기부터 진료까지 편안함을 더했습니다.</p>
         </article>
@@ -157,9 +162,11 @@ document.querySelector("#app").innerHTML = `
     </section>
 
     <section class="section doctors reveal-section" id="doctors" data-reveal-section>
-      <div class="section-kicker">DOCTORS</div>
-      <div class="section-heading">
-        <h2>대학병원 출신 풀타임 전공의가 24시간 상주합니다.</h2>
+      <div class="section-heading doctors-heading">
+        <div>
+          <div class="section-kicker">SUYEONG'S DOCTORS</div>
+          <h2>대학병원 출신 풀타임 전공의가 24시간 상주합니다.</h2>
+        </div>
         <p>외과 전문 전공의 의료진이 응급 상황부터 수술, 회복 관리까지 직접 살핍니다.</p>
       </div>
       <div class="doctor-showcase" aria-label="대표원장 소개">
@@ -205,10 +212,10 @@ document.querySelector("#app").innerHTML = `
     </section>
 
     <section class="section services reveal-section" aria-label="진료 과목" data-reveal-section>
-      <div class="section-kicker">SPECIALTY</div>
+      <div class="section-kicker">SUYEONG'S MEDICAL CENTER</div>
       <div class="section-heading">
-        <h2>수술, 재활, 내과까지 한 곳에서 이어지는 특화 진료.</h2>
-        <p>대학병원급 전문 장비와 분야별 진료 경험을 바탕으로 필요한 치료를 정확하게 연결합니다.</p>
+        <h2>수술, 재활, 내과, 응급 진료까지 한 곳에서 이어집니다.</h2>
+        <p>분야별 진료 경험을 바탕으로 필요한 치료와 회복 관리를 정확하게 연결합니다.</p>
       </div>
       <div class="specialty-grid">
         <article class="specialty-card">
@@ -230,6 +237,13 @@ document.querySelector("#app").innerHTML = `
           <div>
             <h3>내과 특화 진료</h3>
             <p>심장, 신장, 간담도계 질환처럼 꾸준한 관리가 필요한 내과 질환을 세심하게 봅니다.</p>
+          </div>
+        </article>
+        <article class="specialty-card">
+          <span>04</span>
+          <div>
+            <h3>24시간 응급 진료</h3>
+            <p>야간과 휴일에도 내원이 필요한 상황에 대응할 수 있도록 365일 진료 체계를 운영합니다.</p>
           </div>
         </article>
       </div>

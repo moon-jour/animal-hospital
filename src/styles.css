@@ -449,7 +449,7 @@ img {
 }
 
 .feature-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 56px;
 }
 
@@ -594,7 +594,16 @@ img {
 }
 
 .doctors {
-  background: var(--paper);
+  color: var(--linen);
+  background: var(--deep);
+}
+
+.doctors .section-heading p {
+  color: rgba(255, 250, 241, 0.72);
+}
+
+.doctors .section-kicker {
+  color: var(--gold);
 }
 
 .doctor-showcase {
@@ -691,7 +700,7 @@ img {
 }
 
 .specialty-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 52px;
 }
 
