@@ -38,7 +38,7 @@ document.querySelector("#app").innerHTML = `
     <div class="reveal-section reveal-section--home is-visible" data-reveal-section>
       <section class="hero" aria-label="병원 메인 이미지">
         <div class="hero__content">
-          <p class="eyebrow">NEWLY OPENED 24H ANIMAL MEDICAL CENTER</p>
+          <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
           <h1>${hospitalDisplayName}</h1>
           <p class="hero__lead">
             차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
@@ -81,7 +81,7 @@ document.querySelector("#app").innerHTML = `
         </div>
         <div class="copy-stack">
           <p>
-            ${hospital.name}는 새롭게 문을 연 24시간 동물의료센터입니다. 보호자가 불안한 순간에도
+            ${hospital.name}는 365일 24시간 진료하는 동물의료센터입니다. 보호자가 불안한 순간에도
             차분하게 이해할 수 있도록 검사와 치료 과정을 명확하게 설명합니다.
           </p>
           <p>
