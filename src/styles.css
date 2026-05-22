@@ -842,10 +842,13 @@ footer {
 @media (max-width: 680px) {
   html {
     scroll-padding-top: 66px;
+    scroll-snap-type: y mandatory;
   }
 
   .snap-chapter {
     scroll-margin-top: 66px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .site-header {

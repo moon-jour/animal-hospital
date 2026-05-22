@@ -135,7 +135,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section doctors snap-chapter" id="doctors" data-snap-section>
+    <section class="section doctors snap-chapter" id="doctors" data-snap-section data-free-scroll>
       <div class="section-kicker">DOCTORS</div>
       <div class="section-heading">
         <h2>두 명의 의료진이 진료의 처음부터 회복까지 함께 살핍니다.</h2>
@@ -240,6 +240,7 @@ document.querySelector("#year").textContent = new Date().getFullYear();
 const siteHeader = document.querySelector(".site-header");
 const snapSections = Array.from(document.querySelectorAll("[data-snap-section]"));
 const snapMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const mobileSnapQuery = window.matchMedia("(max-width: 680px)");
 const scrollTopButton = document.querySelector(".scroll-top-button");
 let isChapterSnapping = false;
 let chapterSnapTimer = 0;
@@ -304,6 +305,10 @@ const getActiveSnapIndex = (direction = 1) => {
 
 const canScrollInsideSection = (section, direction) => {
   if (!section) {
+    return false;
+  }
+
+  if (mobileSnapQuery.matches && !section.hasAttribute("data-free-scroll")) {
     return false;
   }
 
