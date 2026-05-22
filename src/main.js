@@ -10,7 +10,7 @@ const hospital = {
 const hospitalDisplayName = hospital.name.replace("동물", "<wbr />동물");
 const imageUrl = (filename) => `${import.meta.env.BASE_URL}images/${filename}`;
 const receptionImageUrl = imageUrl("main-reception.jpg");
-const logoImageUrl = imageUrl("hospital-logo.jpeg");
+const logoImageUrl = imageUrl("hospital-symbol.jpeg");
 const doctorsImageUrl = imageUrl("doctors-profile.jpeg");
 const allHoursImageUrl = imageUrl("all-hours-card.jpeg");
 const surgeryImageUrl = imageUrl("surgery-specialty.jpeg");
