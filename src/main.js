@@ -74,7 +74,7 @@ document.querySelector("#app").innerHTML = `
     </div>
 
     <section class="section intro reveal-section" id="about" data-reveal-section>
-      <div class="section-kicker">SUYEONG'S SPECIALITIES</div>
+      <div class="section-kicker">24H CARE STANDARD</div>
       <div class="split">
         <div>
           <h2>전문 의료진과 차분한 공간, 필요한 진료를 한 곳에서.</h2>
@@ -164,7 +164,7 @@ document.querySelector("#app").innerHTML = `
     <section class="section doctors reveal-section" id="doctors" data-reveal-section>
       <div class="section-heading doctors-heading">
         <div>
-          <div class="section-kicker">SUYEONG'S DOCTORS</div>
+          <div class="section-kicker">24H VETERINARY TEAM</div>
           <h2>대학병원 출신 풀타임 전공의가 24시간 상주합니다.</h2>
         </div>
         <p>외과 전문 전공의 의료진이 응급 상황부터 수술, 회복 관리까지 직접 살핍니다.</p>
@@ -212,7 +212,7 @@ document.querySelector("#app").innerHTML = `
     </section>
 
     <section class="section services reveal-section" aria-label="진료 과목" data-reveal-section>
-      <div class="section-kicker">SUYEONG'S MEDICAL CENTER</div>
+      <div class="section-kicker">24H MEDICAL SERVICE</div>
       <div class="section-heading">
         <h2>수술, 재활, 내과, 응급 진료까지 한 곳에서 이어집니다.</h2>
         <p>분야별 진료 경험을 바탕으로 필요한 치료와 회복 관리를 정확하게 연결합니다.</p>
