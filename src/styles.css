@@ -607,7 +607,7 @@ img {
 
 .doctor-profile-card {
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: minmax(440px, 58vh) auto;
   overflow: hidden;
   border: 1px solid rgba(6, 71, 101, 0.14);
   border-radius: 8px;
@@ -619,7 +619,6 @@ img {
   display: flex;
   align-items: end;
   justify-content: center;
-  aspect-ratio: 500 / 430;
   min-height: 0;
   margin: 0;
   overflow: hidden;
@@ -630,7 +629,7 @@ img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center 12%;
 }
 
 .doctor-profile-card > div {
@@ -659,6 +658,25 @@ img {
   margin: 0;
   color: var(--muted);
   line-height: 1.75;
+}
+
+.doctor-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.doctor-tags li {
+  padding: 8px 10px;
+  border: 1px solid rgba(6, 71, 101, 0.16);
+  border-radius: 8px;
+  color: var(--brand-navy-deep);
+  background: rgba(223, 244, 242, 0.46);
+  font-size: 0.86rem;
+  font-weight: 800;
 }
 
 .services {
@@ -893,6 +911,7 @@ footer {
   }
 
   .doctor-profile-card {
+    grid-template-rows: minmax(460px, 62vh) auto;
     max-width: 640px;
   }
 
@@ -991,6 +1010,10 @@ footer {
 
   .doctor-profile-card > div {
     padding: 24px;
+  }
+
+  .doctor-profile-card {
+    grid-template-rows: minmax(380px, 58vh) auto;
   }
 
   .doctor-profile-card h3 {

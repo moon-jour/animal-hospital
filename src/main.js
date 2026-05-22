@@ -11,8 +11,8 @@ const hospitalDisplayName = hospital.name.replace("동물", "<wbr />동물");
 const imageUrl = (filename) => `${import.meta.env.BASE_URL}images/${filename}`;
 const receptionImageUrl = imageUrl("main-reception.jpg");
 const logoImageUrl = imageUrl("hospital-symbol.jpeg");
-const hongDoctorImageUrl = imageUrl("doctor-hong-portrait.jpg");
-const kimDoctorImageUrl = imageUrl("doctor-kim-portrait.jpg");
+const hongDoctorImageUrl = imageUrl("doctor-hong-card.png");
+const kimDoctorImageUrl = imageUrl("doctor-kim-card.png");
 
 document.querySelector("#app").innerHTML = `
   <header class="site-header" aria-label="상단 메뉴">
@@ -175,6 +175,11 @@ document.querySelector("#app").innerHTML = `
               응급 진료와 외과 수술이 필요한 순간에 진단부터 치료 계획까지 차분하게 설명합니다.
               보호자가 이해할 수 있는 언어로 수술 전후 과정을 안내합니다.
             </p>
+            <ul class="doctor-tags" aria-label="홍정호 대표원장 진료 소개">
+              <li>외과 수술 상담</li>
+              <li>응급 처치</li>
+              <li>수술 전후 설명</li>
+            </ul>
           </div>
         </article>
         <article class="doctor-profile-card">
@@ -189,6 +194,11 @@ document.querySelector("#app").innerHTML = `
               수술 전 평가와 회복 관리까지 이어지는 진료 흐름을 설계합니다.
               응급 상황에서도 필요한 처치와 다음 단계를 명확하게 안내합니다.
             </p>
+            <ul class="doctor-tags" aria-label="김민연 대표원장 진료 소개">
+              <li>수술 전 평가</li>
+              <li>회복 관리</li>
+              <li>응급 진료</li>
+            </ul>
           </div>
         </article>
       </div>
