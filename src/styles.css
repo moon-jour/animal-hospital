@@ -675,25 +675,6 @@ img {
   line-height: 1.75;
 }
 
-.doctor-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 22px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.doctor-tags li {
-  padding: 8px 10px;
-  border: 1px solid rgba(6, 71, 101, 0.16);
-  border-radius: 8px;
-  color: var(--brand-navy-deep);
-  background: var(--paper-strong);
-  font-size: 0.86rem;
-  font-weight: 800;
-}
-
 .services {
   background: var(--linen);
 }

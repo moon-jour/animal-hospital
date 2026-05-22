@@ -167,7 +167,7 @@ document.querySelector("#app").innerHTML = `
           <div class="section-kicker">24H VETERINARY TEAM</div>
           <h2>대학병원 출신 풀타임 전공의가 24시간 상주합니다.</h2>
         </div>
-        <p>외과 전문 전공의 의료진이 응급 상황부터 수술, 회복 관리까지 직접 살핍니다.</p>
+        <p>두 대표원장이 응급 진료, 외과 수술, 내과 상담, 회복 관리까지 함께 살핍니다.</p>
       </div>
       <div class="doctor-showcase" aria-label="대표원장 소개">
         <article class="doctor-profile-card">
@@ -179,14 +179,9 @@ document.querySelector("#app").innerHTML = `
             <h3>홍정호 대표원장</h3>
             <strong>외과 전문 전공의</strong>
             <p>
-              응급 진료와 외과 수술이 필요한 순간에 진단부터 치료 계획까지 차분하게 설명합니다.
-              보호자가 이해할 수 있는 언어로 수술 전후 과정을 안내합니다.
+              응급 진료, 외과 수술, 내과 상담, 회복 관리까지 필요한 진료 전 과정을 차분하게 설명합니다.
+              보호자가 이해할 수 있는 언어로 검사와 치료 선택지를 안내합니다.
             </p>
-            <ul class="doctor-tags" aria-label="홍정호 대표원장 진료 소개">
-              <li>외과 수술 상담</li>
-              <li>응급 처치</li>
-              <li>수술 전후 설명</li>
-            </ul>
           </div>
         </article>
         <article class="doctor-profile-card">
@@ -198,14 +193,9 @@ document.querySelector("#app").innerHTML = `
             <h3>김민연 대표원장</h3>
             <strong>외과 전문 전공의</strong>
             <p>
-              수술 전 평가와 회복 관리까지 이어지는 진료 흐름을 설계합니다.
-              응급 상황에서도 필요한 처치와 다음 단계를 명확하게 안내합니다.
+              야간 응급 상황부터 수술 전 평가, 내과적 관리, 회복 계획까지 한 흐름으로 살핍니다.
+              반려동물 상태와 보호자 상황에 맞춰 필요한 다음 단계를 명확하게 안내합니다.
             </p>
-            <ul class="doctor-tags" aria-label="김민연 대표원장 진료 소개">
-              <li>수술 전 평가</li>
-              <li>회복 관리</li>
-              <li>응급 진료</li>
-            </ul>
           </div>
         </article>
       </div>
