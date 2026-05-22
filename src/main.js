@@ -109,7 +109,7 @@ document.querySelector("#app").innerHTML = `
         <article>
           <span>04</span>
           <h3>안정적인 공간</h3>
-          <p>어두운 베이지 톤의 조용한 인테리어로 대기부터 진료까지 편안함을 더했습니다.</p>
+          <p>화이트와 네이비 톤의 정돈된 공간으로 대기부터 진료까지 안정감을 더했습니다.</p>
         </article>
       </div>
     </section>
