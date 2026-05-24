@@ -193,6 +193,48 @@ test("trackpad inertia does not skip past the next snap panel", async ({ page })
   }
 });
 
+test("opposite wheel rebound after a downward snap does not return to the previous panel", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const sendWheel = (deltaY) => {
+      scrollRoot.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY,
+        }),
+      );
+    };
+
+    scrollRoot.scrollTo({ top: 0, behavior: "auto" });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    sendWheel(640);
+    await wait(1040);
+
+    for (const delay of [70, 70, 70, 70]) {
+      sendWheel(-160);
+      await wait(delay);
+    }
+
+    await wait(520);
+
+    return {
+      finalIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+      finalTop: Math.round(scrollRoot.scrollTop),
+      panelHeight: Math.round(panelHeight),
+    };
+  });
+
+  expect(result.finalIndex).toBe(1);
+  expect(result.finalTop).toBe(result.panelHeight);
+});
+
 test("wheel snap accepts another deliberate scroll shortly after settling", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
@@ -231,16 +273,67 @@ test("wheel snap accepts another deliberate scroll shortly after settling", asyn
   expect(result.finalIndex).toBe(2);
 });
 
+test("fade carousels restart from the first slide when their snap panel is entered", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const activeSlideIndex = (selector) =>
+    page.evaluate((slideSelector) => {
+      return Array.from(document.querySelectorAll(slideSelector)).findIndex((slide) =>
+        slide.classList.contains("is-active"),
+      );
+    }, selector);
+
+  const scrollRoot = page.locator("main#top");
+
+  await page.evaluate(() => {
+    document.querySelector('[data-about-slide-index="2"]').click();
+  });
+  await expect.poll(() => activeSlideIndex("[data-about-slide]")).toBe(2);
+
+  await scrollRoot.evaluate((element) => {
+    element.scrollTo({ top: element.clientHeight, behavior: "auto" });
+  });
+  await expect.poll(() => activeSlideIndex("[data-about-slide]")).toBe(0);
+
+  await page.evaluate(() => {
+    document.querySelector('[data-hours-slide-index="2"]').click();
+  });
+  await expect.poll(() => activeSlideIndex("[data-hours-slide]")).toBe(2);
+
+  await scrollRoot.evaluate((element) => {
+    element.scrollTo({ top: element.clientHeight * 2, behavior: "auto" });
+  });
+  await expect.poll(() => activeSlideIndex("[data-hours-slide]")).toBe(0);
+
+  await page.evaluate(() => {
+    document.querySelector('[data-facility-slide-index="4"]').click();
+  });
+  await expect.poll(() => activeSlideIndex("[data-facility-slide]")).toBe(4);
+
+  await scrollRoot.evaluate((element) => {
+    element.scrollTo({ top: element.clientHeight * 5, behavior: "auto" });
+  });
+  await expect.poll(() => activeSlideIndex("[data-facility-slide]")).toBe(0);
+});
+
 test("about carousel advances, loops, jumps, and pauses inside the second snap panel", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
 
+  const scrollRoot = page.locator("main#top");
   const activeAboutSlideIndex = () =>
     page.evaluate(() =>
       Array.from(document.querySelectorAll("[data-about-slide]")).findIndex((slide) =>
         slide.classList.contains("is-active"),
       ),
     );
+
+  await scrollRoot.evaluate((element) => {
+    element.scrollTo({ top: element.clientHeight, behavior: "auto" });
+  });
+  await expect.poll(activeAboutSlideIndex).toBe(0);
+
   const controlStyles = await page.evaluate(() => {
     const controls = document.querySelector(".about-slide-controls");
     const toggle = document.querySelector(".about-slide-toggle");
@@ -303,12 +396,19 @@ test("hours carousel fades, jumps, and pauses inside the third snap panel", asyn
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
 
+  const scrollRoot = page.locator("main#top");
   const activeHoursSlideIndex = () =>
     page.evaluate(() =>
       Array.from(document.querySelectorAll("[data-hours-slide]")).findIndex((slide) =>
         slide.classList.contains("is-active"),
       ),
     );
+
+  await scrollRoot.evaluate((element) => {
+    element.scrollTo({ top: element.clientHeight * 2, behavior: "auto" });
+  });
+  await expect.poll(activeHoursSlideIndex).toBe(0);
+
   const controlStyles = await page.evaluate(() => {
     const controls = document.querySelector(".hours-slide-controls");
     const toggle = document.querySelector(".hours-slide-toggle");
@@ -351,4 +451,55 @@ test("hours carousel fades, jumps, and pauses inside the third snap panel", asyn
 
   await page.waitForTimeout(4300);
   await expect.poll(activeHoursSlideIndex).toBe(2);
+});
+
+test("facility carousel shows uploaded photos with black contain background", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const scrollRoot = page.locator("main#top");
+  const activeFacilitySlideIndex = () =>
+    page.evaluate(() =>
+      Array.from(document.querySelectorAll("[data-facility-slide]")).findIndex((slide) =>
+        slide.classList.contains("is-active"),
+      ),
+    );
+
+  await scrollRoot.evaluate((element) => {
+    element.scrollTo({ top: element.clientHeight * 5, behavior: "auto" });
+  });
+  await expect.poll(activeFacilitySlideIndex).toBe(0);
+
+  const facilityStyles = await page.evaluate(() => {
+    const controls = document.querySelector(".facility-slide-controls");
+    const photo = document.querySelector(".facility-slide.is-active .facility-photo");
+    const image = document.querySelector(".facility-slide.is-active .facility-photo img");
+    const dots = Array.from(document.querySelectorAll(".facility-slide-dot"));
+
+    return {
+      controlsBackground: getComputedStyle(controls).backgroundColor,
+      dotCount: dots.length,
+      imageFit: getComputedStyle(image).objectFit,
+      imageSrc: image.getAttribute("src"),
+      photoBackground: getComputedStyle(photo).backgroundColor,
+    };
+  });
+
+  expect(facilityStyles.controlsBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(facilityStyles.dotCount).toBe(10);
+  expect(facilityStyles.imageFit).toBe("contain");
+  expect(facilityStyles.imageSrc).toContain("facility-01.jpg");
+  expect(facilityStyles.photoBackground).toBe("rgb(0, 0, 0)");
+
+  await expect.poll(activeFacilitySlideIndex, { timeout: 5200 }).toBe(1);
+
+  await page.getByRole("button", { name: "10번째 시설소개 화면으로 이동" }).click();
+  await expect.poll(activeFacilitySlideIndex).toBe(9);
+
+  const pauseButton = page.getByRole("button", { name: "시설소개 슬라이드 일시정지" });
+  await pauseButton.click();
+  await expect(page.getByRole("button", { name: "시설소개 슬라이드 재생" })).toBeVisible();
+
+  await page.waitForTimeout(4300);
+  await expect.poll(activeFacilitySlideIndex).toBe(9);
 });

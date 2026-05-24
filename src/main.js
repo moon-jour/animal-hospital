@@ -13,6 +13,75 @@ const receptionImageUrl = imageUrl("main-reception.jpg");
 const logoImageUrl = imageUrl("hospital-symbol.jpeg");
 const hongDoctorImageUrl = imageUrl("doctor-hong-card.png");
 const kimDoctorImageUrl = imageUrl("doctor-kim-card.png");
+const facilitySlides = [
+  {
+    filename: "facility-01.jpg",
+    title: "수술실",
+    description: "정밀한 수술과 마취 모니터링을 위한 장비를 갖춘 수술 공간입니다.",
+  },
+  {
+    filename: "facility-02.jpg",
+    title: "수술 및 영상 장비",
+    description: "검사와 처치, 수술 동선이 이어질 수 있도록 장비를 정돈했습니다.",
+  },
+  {
+    filename: "facility-03.jpg",
+    title: "처치실",
+    description: "세척과 처치, 회복 관찰이 효율적으로 이어지는 위생적인 공간입니다.",
+  },
+  {
+    filename: "facility-04.jpg",
+    title: "재활 치료실",
+    description: "운동 기능 회복과 통증 관리를 위한 재활 장비를 준비했습니다.",
+  },
+  {
+    filename: "facility-05.jpg",
+    title: "의료 동선",
+    description: "수술실과 처치실을 분리된 동선으로 연결해 안정적인 진료 흐름을 만듭니다.",
+  },
+  {
+    filename: "facility-06.jpg",
+    title: "병원 입구",
+    description: "보호자와 반려동물이 처음 마주하는 입구부터 명확하고 차분하게 안내합니다.",
+  },
+  {
+    filename: "facility-07.jpg",
+    title: "대기 공간",
+    description: "진료 전 대기 시간을 편안하게 보낼 수 있는 밝고 정돈된 공간입니다.",
+  },
+  {
+    filename: "facility-08.jpg",
+    title: "대기 복도",
+    description: "넓은 창과 벤치가 있는 동선으로 보호자의 대기 부담을 줄였습니다.",
+  },
+  {
+    filename: "facility-09.jpg",
+    title: "보호자 상담 공간",
+    description: "상담과 안내, 처방 사료 확인까지 한 흐름으로 이어지는 공간입니다.",
+  },
+  {
+    filename: "facility-10.jpg",
+    title: "리셉션",
+    description: "접수와 상담이 자연스럽게 이어지는 밝은 리셉션 공간입니다.",
+  },
+];
+const facilitySlideMarkup = facilitySlides
+  .map(
+    ({ filename, title, description }, index) => `
+      <article class="facility-slide ${index === 0 ? "is-active" : ""}" data-facility-slide aria-hidden="${index === 0 ? "false" : "true"}">
+        <figure class="facility-photo">
+          <img src="${imageUrl(filename)}" alt="${hospital.name} ${title}" loading="${index === 0 ? "eager" : "lazy"}" />
+        </figure>
+        <div class="facility-caption">
+          <div class="section-kicker">FACILITY</div>
+          <h2>${title}</h2>
+          <p>${description}</p>
+          <span>${String(index + 1).padStart(2, "0")} / ${String(facilitySlides.length).padStart(2, "0")}</span>
+        </div>
+      </article>
+    `,
+  )
+  .join("");
 
 document.querySelector("#app").innerHTML = `
   <header class="site-header" aria-label="상단 메뉴">
@@ -29,7 +98,7 @@ document.querySelector("#app").innerHTML = `
       <a href="#about"><span>병원소개</span></a>
       <a href="#doctors"><span>의료진</span></a>
       <a href="#hours"><span>진료안내</span></a>
-      <a href="#space"><span>공간</span></a>
+      <a href="#space"><span>시설소개</span></a>
     </nav>
     <a class="header-cta" href="#contact">문의</a>
   </header>
@@ -295,20 +364,15 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section space snap-panel reveal-section" id="space" data-reveal-section>
-      <div class="section-kicker">SPACE</div>
-      <div class="space-layout">
-        <div>
-          <h2>첫 방문의 긴장을 덜어주는 따뜻한 리셉션.</h2>
-          <p>
-            은은한 조명과 부드러운 소재감의 대기 공간은 보호자와 반려동물이 차분하게 머무를 수 있도록
-            설계되었습니다.
-          </p>
-        </div>
-        <figure class="space-photo">
-          <img src="${receptionImageUrl}" alt="24시수영동물의료센터 리셉션 전경" />
-          <figcaption>${hospital.englishName}</figcaption>
-        </figure>
+    <section class="facility-section snap-panel reveal-section" id="space" data-reveal-section>
+      <div class="facility-carousel" aria-live="polite">
+        ${facilitySlideMarkup}
+      </div>
+      <div class="facility-slide-controls slide-controls" aria-label="시설소개 슬라이드 제어">
+        <button class="facility-slide-toggle slide-toggle" type="button" aria-pressed="false" data-facility-slide-toggle>
+          <span aria-hidden="true">||</span>
+        </button>
+        <div class="facility-slide-dots slide-dots" aria-label="시설소개 화면 단계 이동" data-facility-slide-dots></div>
       </div>
     </section>
 
@@ -344,8 +408,9 @@ const SNAP_SCROLL_DURATION = 940;
 const WHEEL_DELTA_THRESHOLD = 44;
 const TOUCH_DELTA_THRESHOLD = 48;
 const WHEEL_EVENT_GAP_MS = 180;
-const WHEEL_TAIL_SUPPRESS_MS = 180;
+const WHEEL_TAIL_SUPPRESS_MS = 420;
 const WHEEL_REENGAGE_DELTA = 300;
+const WHEEL_REVERSE_REENGAGE_DELTA = 520;
 
 let scrollAnimationFrame = 0;
 let wheelDeltaAccumulator = 0;
@@ -443,6 +508,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
     scrollRoot.scrollTop = nextTop;
     scrollRoot.classList.remove("is-controlled-scroll");
     scrollAnimationFrame = 0;
+    wheelDeltaAccumulator = 0;
     wheelTailSuppressUntil = performance.now() + WHEEL_TAIL_SUPPRESS_MS;
     updateScrollTopButton();
   };
@@ -509,6 +575,7 @@ scrollRoot?.addEventListener(
     lastWheelAt = now;
 
     if (scrollAnimationFrame) {
+      wheelDeltaAccumulator = 0;
       return;
     }
 
@@ -517,8 +584,13 @@ scrollRoot?.addEventListener(
       now < wheelTailSuppressUntil &&
       direction === lastSnapDirection &&
       Math.abs(event.deltaY) < WHEEL_REENGAGE_DELTA;
+    const isLikelyReverseBounce =
+      now < wheelTailSuppressUntil &&
+      direction === -lastSnapDirection &&
+      Math.abs(event.deltaY) < WHEEL_REVERSE_REENGAGE_DELTA;
 
-    if (isLikelyInertiaTail) {
+    if (isLikelyInertiaTail || isLikelyReverseBounce) {
+      wheelDeltaAccumulator = 0;
       return;
     }
 
@@ -726,6 +798,9 @@ const aboutSlideToggle = document.querySelector("[data-about-slide-toggle]");
 const hoursSlides = Array.from(document.querySelectorAll("[data-hours-slide]"));
 const hoursSlideDots = document.querySelector("[data-hours-slide-dots]");
 const hoursSlideToggle = document.querySelector("[data-hours-slide-toggle]");
+const facilitySlideElements = Array.from(document.querySelectorAll("[data-facility-slide]"));
+const facilitySlideDots = document.querySelector("[data-facility-slide-dots]");
+const facilitySlideToggle = document.querySelector("[data-facility-slide-toggle]");
 const ABOUT_SLIDE_INTERVAL = 4000;
 const activeCarousels = [];
 
@@ -736,6 +811,7 @@ const createFadeCarousel = ({
   dotClassName,
   dotDataAttribute,
   label,
+  section,
 }) => {
   let activeSlide = 0;
   let slideTimer = 0;
@@ -815,6 +891,11 @@ const createFadeCarousel = ({
     schedule();
   };
 
+  const resetToFirst = () => {
+    show(0);
+    schedule();
+  };
+
   for (const button of dotButtons) {
     button.addEventListener("click", () => {
       show(Number(button.getAttribute(dotDataAttribute)));
@@ -834,7 +915,7 @@ const createFadeCarousel = ({
   render();
   schedule();
 
-  return { clearTimer, schedule };
+  return { clearTimer, resetToFirst, schedule, section };
 };
 
 activeCarousels.push(
@@ -845,6 +926,7 @@ activeCarousels.push(
     dotClassName: "about-slide-dot",
     dotDataAttribute: "data-about-slide-index",
     label: "병원 소개",
+    section: document.querySelector("#about"),
   }),
 );
 
@@ -856,8 +938,59 @@ activeCarousels.push(
     dotClassName: "hours-slide-dot",
     dotDataAttribute: "data-hours-slide-index",
     label: "진료안내",
+    section: document.querySelector("#hours"),
   }),
 );
+
+activeCarousels.push(
+  createFadeCarousel({
+    slides: facilitySlideElements,
+    dotsContainer: facilitySlideDots,
+    toggleButton: facilitySlideToggle,
+    dotClassName: "facility-slide-dot",
+    dotDataAttribute: "data-facility-slide-index",
+    label: "시설소개",
+    section: document.querySelector("#space"),
+  }),
+);
+
+if ("IntersectionObserver" in window && scrollRoot) {
+  const enteredCarouselSections = new Set();
+  const carouselEntranceObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const carousel = activeCarousels.find(({ section }) => section === entry.target);
+
+        if (!carousel) {
+          continue;
+        }
+
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.62) {
+          if (!enteredCarouselSections.has(entry.target)) {
+            enteredCarouselSections.add(entry.target);
+            carousel.resetToFirst();
+          }
+
+          continue;
+        }
+
+        if (entry.intersectionRatio <= 0.25) {
+          enteredCarouselSections.delete(entry.target);
+        }
+      }
+    },
+    {
+      root: scrollRoot,
+      threshold: [0, 0.25, 0.62, 0.95],
+    },
+  );
+
+  for (const { section } of activeCarousels) {
+    if (section) {
+      carouselEntranceObserver.observe(section);
+    }
+  }
+}
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
