@@ -211,9 +211,7 @@ document.querySelector("#app").innerHTML = `
     <section class="hours-section snap-panel reveal-section" id="hours" data-reveal-section>
       <div class="hours-carousel" aria-live="polite">
         <article class="hours-slide hours-slide--schedule is-active" data-hours-slide>
-          <div class="hours-slide__visual" aria-hidden="true">
-            <span>24H</span>
-          </div>
+          <div class="hours-slide__visual" aria-hidden="true"></div>
           <div class="hours-slide__content">
             <div class="section-kicker">HOURS</div>
             <div class="split split--center">
@@ -250,9 +248,7 @@ document.querySelector("#app").innerHTML = `
           </div>
         </article>
         <article class="hours-slide hours-slide--night" data-hours-slide aria-hidden="true">
-          <div class="hours-slide__visual" aria-hidden="true">
-            <span>ER</span>
-          </div>
+          <div class="hours-slide__visual" aria-hidden="true"></div>
           <div class="hours-slide__content hours-slide__content--compact">
             <div class="section-kicker">NIGHT CARE</div>
             <h2>갑작스러운 증상에도 문을 열어두겠습니다.</h2>
@@ -275,9 +271,7 @@ document.querySelector("#app").innerHTML = `
           </div>
         </article>
         <article class="hours-slide hours-slide--visit" data-hours-slide aria-hidden="true">
-          <div class="hours-slide__visual" aria-hidden="true">
-            <span>CALL</span>
-          </div>
+          <div class="hours-slide__visual" aria-hidden="true"></div>
           <div class="hours-slide__content hours-slide__content--compact">
             <div class="section-kicker">VISIT GUIDE</div>
             <h2>내원 전 문의부터 진료 후 안내까지 한 흐름으로 돕습니다.</h2>

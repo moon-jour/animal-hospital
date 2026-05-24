@@ -663,6 +663,9 @@ test("hours carousel fades, jumps, and pauses inside the fourth snap panel", asy
     const activeDot = document.querySelector(".hours-slide-dot.is-active");
     const activeContent = document.querySelector(".hours-slide.is-active .hours-slide__content");
     const activeVisual = document.querySelector(".hours-slide.is-active .hours-slide__visual");
+    const visualText = Array.from(document.querySelectorAll(".hours-slide__visual")).map((visual) =>
+      visual.textContent.trim(),
+    );
 
     return {
       activeDotBackground: getComputedStyle(activeDot).backgroundColor,
@@ -673,6 +676,7 @@ test("hours carousel fades, jumps, and pauses inside the fourth snap panel", asy
       toggleBackground: getComputedStyle(toggle).backgroundColor,
       toggleBorder: getComputedStyle(toggle).borderTopColor,
       visualBackground: getComputedStyle(activeVisual).backgroundColor,
+      visualText,
       visualTransitionDelay: getComputedStyle(activeVisual).transitionDelay,
     };
   });
@@ -685,6 +689,7 @@ test("hours carousel fades, jumps, and pauses inside the fourth snap panel", asy
   expect(controlStyles.toggleBorder).toBe("rgb(255, 255, 255)");
   expect(controlStyles.contentTransitionDelay).toContain("0.26s");
   expect(controlStyles.visualBackground).toBe("rgba(255, 255, 255, 0.1)");
+  expect(controlStyles.visualText).toEqual(["", "", ""]);
   expect(controlStyles.visualTransitionDelay).toContain("0.08s");
 
   await expect.poll(activeHoursSlideIndex).toBe(0);
