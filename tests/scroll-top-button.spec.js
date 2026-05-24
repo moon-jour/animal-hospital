@@ -173,13 +173,18 @@ test("wheel snap scroll is controlled and does not overshoot the next panel", as
     scrollRoot.scrollTo({ top: 0, behavior: "auto" });
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    const wheelEvent = new WheelEvent("wheel", {
-      bubbles: true,
-      cancelable: true,
-      deltaY: 640,
-    });
+    const wheelEvents = [160, 160, 160].map(
+      (deltaY) =>
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY,
+        }),
+    );
 
-    scrollRoot.dispatchEvent(wheelEvent);
+    for (const wheelEvent of wheelEvents) {
+      scrollRoot.dispatchEvent(wheelEvent);
+    }
 
     const startedAt = performance.now();
 
@@ -199,7 +204,7 @@ test("wheel snap scroll is controlled and does not overshoot the next panel", as
           .map((entry) => entry.top);
 
         resolve({
-          defaultPrevented: wheelEvent.defaultPrevented,
+          defaultPrevented: wheelEvents.every((wheelEvent) => wheelEvent.defaultPrevented),
           earlyMax: Math.round(Math.max(0, ...earlyTops)),
           finalTop: Math.round(scrollRoot.scrollTop),
           maxTop: Math.round(Math.max(...tops)),
@@ -215,6 +220,45 @@ test("wheel snap scroll is controlled and does not overshoot the next panel", as
   expect(result.earlyMax).toBeLessThan(result.panelHeight * 0.45);
   expect(result.maxTop).toBeLessThanOrEqual(result.panelHeight + 2);
   expect(result.finalTop).toBe(result.panelHeight);
+});
+
+test("wheel snap waits for enough same-direction scroll before moving", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const sendWheel = (deltaY) => {
+      scrollRoot.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY,
+        }),
+      );
+    };
+
+    scrollRoot.scrollTo({ top: 0, behavior: "auto" });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    sendWheel(720);
+    await wait(360);
+    const indexAfterSingleEvent = Math.round(scrollRoot.scrollTop / panelHeight);
+
+    sendWheel(180);
+    sendWheel(180);
+    await wait(1140);
+
+    return {
+      finalIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+      indexAfterSingleEvent,
+    };
+  });
+
+  expect(result.indexAfterSingleEvent).toBe(0);
+  expect(result.finalIndex).toBe(1);
 });
 
 test("trackpad inertia does not skip past the next snap panel", async ({ page }) => {
@@ -291,7 +335,9 @@ test("opposite wheel rebound after a downward snap does not return to the previo
     scrollRoot.scrollTo({ top: 0, behavior: "auto" });
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    sendWheel(640);
+    for (const deltaY of [180, 180, 180]) {
+      sendWheel(deltaY);
+    }
     await wait(1040);
 
     for (const delay of [70, 70, 70, 70]) {
@@ -333,7 +379,9 @@ test("large delayed reverse rebound after a snap does not jump back", async ({ p
     scrollRoot.scrollTo({ top: 0, behavior: "auto" });
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    sendWheel(640);
+    for (const deltaY of [180, 180, 180]) {
+      sendWheel(deltaY);
+    }
     await wait(1480);
     sendWheel(-720);
     await wait(760);
@@ -347,6 +395,46 @@ test("large delayed reverse rebound after a snap does not jump back", async ({ p
 
   expect(result.finalIndex).toBe(1);
   expect(result.finalTop).toBe(result.panelHeight);
+});
+
+test("leftover wheel delta after a snap does not continue to another section", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const sendWheel = (deltaY) => {
+      scrollRoot.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY,
+        }),
+      );
+    };
+
+    scrollRoot.scrollTo({ top: 0, behavior: "auto" });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    for (const deltaY of [180, 180, 180]) {
+      sendWheel(deltaY);
+    }
+    await wait(1260);
+    const indexAfterSnap = Math.round(scrollRoot.scrollTop / panelHeight);
+
+    sendWheel(720);
+    await wait(420);
+
+    return {
+      finalIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+      indexAfterSnap,
+    };
+  });
+
+  expect(result.indexAfterSnap).toBe(1);
+  expect(result.finalIndex).toBe(1);
 });
 
 test("wheel snap still allows a deliberate reverse scroll after settling", async ({ page }) => {
@@ -370,11 +458,15 @@ test("wheel snap still allows a deliberate reverse scroll after settling", async
     scrollRoot.scrollTo({ top: 0, behavior: "auto" });
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    sendWheel(640);
+    for (const deltaY of [180, 180, 180]) {
+      sendWheel(deltaY);
+    }
     await wait(1960);
     const firstIndex = Math.round(scrollRoot.scrollTop / panelHeight);
 
-    sendWheel(-640);
+    for (const deltaY of [-200, -200]) {
+      sendWheel(deltaY);
+    }
     await wait(1140);
 
     return {
@@ -395,12 +487,12 @@ test("wheel snap accepts another deliberate scroll shortly after settling", asyn
     const scrollRoot = document.querySelector("main#top");
     const panelHeight = scrollRoot.clientHeight;
     const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-    const sendWheel = () => {
+    const sendWheel = (deltaY = 180) => {
       scrollRoot.dispatchEvent(
         new WheelEvent("wheel", {
           bubbles: true,
           cancelable: true,
-          deltaY: 640,
+          deltaY,
         }),
       );
     };
@@ -408,11 +500,15 @@ test("wheel snap accepts another deliberate scroll shortly after settling", asyn
     scrollRoot.scrollTo({ top: 0, behavior: "auto" });
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    sendWheel();
-    await wait(1140);
+    for (const deltaY of [180, 180, 180]) {
+      sendWheel(deltaY);
+    }
+    await wait(1260);
     const firstIndex = Math.round(scrollRoot.scrollTop / panelHeight);
 
-    sendWheel();
+    for (const deltaY of [180, 180, 180]) {
+      sendWheel(deltaY);
+    }
     await wait(1140);
 
     return {

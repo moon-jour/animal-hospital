@@ -407,24 +407,18 @@ const scrollTopButton = document.querySelector(".scroll-top-button");
 const revealSections = Array.from(document.querySelectorAll("[data-reveal-section]"));
 const snapPanels = Array.from(document.querySelectorAll(".snap-panel"));
 const SNAP_SCROLL_DURATION = 940;
-const WHEEL_DELTA_THRESHOLD = 44;
+const SNAP_SETTLE_LOCK_MS = 220;
+const WHEEL_DELTA_THRESHOLD = 360;
+const WHEEL_GESTURE_MIN_EVENTS = 2;
 const TOUCH_DELTA_THRESHOLD = 48;
-const WHEEL_EVENT_GAP_MS = 180;
-const WHEEL_TAIL_SUPPRESS_MS = 420;
-const WHEEL_REENGAGE_DELTA = 300;
-const WHEEL_REVERSE_SUPPRESS_MS = 920;
-const WHEEL_REVERSE_REENGAGE_MIN_MS = 720;
-const WHEEL_REVERSE_REENGAGE_DELTA = 780;
+const WHEEL_EVENT_GAP_MS = 220;
 
 let scrollAnimationFrame = 0;
 let wheelDeltaAccumulator = 0;
+let wheelGestureDirection = 0;
+let wheelGestureEventCount = 0;
 let lastWheelAt = 0;
-let lastSnapDirection = 0;
-let lastSnapSettledAt = 0;
-let wheelTailSuppressUntil = 0;
-let wheelReverseSuppressUntil = 0;
-let reverseWheelAccumulator = 0;
-let lastReverseWheelAt = 0;
+let scrollInputLockedUntil = 0;
 let touchStartX = 0;
 let touchStartY = 0;
 let touchTracking = false;
@@ -436,6 +430,20 @@ const easeInOutCubic = (progress) =>
   progress < 0.5
     ? 4 * progress * progress * progress
     : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+const resetScrollGestureState = ({ resetTouch = false } = {}) => {
+  wheelDeltaAccumulator = 0;
+  wheelGestureDirection = 0;
+  wheelGestureEventCount = 0;
+  lastWheelAt = 0;
+
+  if (resetTouch) {
+    touchStartX = 0;
+    touchStartY = 0;
+    touchTracking = false;
+    touchMovedVertically = false;
+  }
+};
 
 const stopScrollAnimation = () => {
   if (scrollAnimationFrame) {
@@ -485,6 +493,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
 
   if (reducedMotionQuery.matches || behavior === "auto") {
     scrollRoot.scrollTo({ top: nextTop, behavior: "auto" });
+    resetScrollGestureState({ resetTouch: true });
     updateScrollTopButton();
     return;
   }
@@ -494,6 +503,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
 
   if (Math.abs(distance) < 1) {
     scrollRoot.scrollTop = nextTop;
+    resetScrollGestureState({ resetTouch: true });
     updateScrollTopButton();
     return;
   }
@@ -516,11 +526,8 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
     scrollRoot.scrollTop = nextTop;
     scrollRoot.classList.remove("is-controlled-scroll");
     scrollAnimationFrame = 0;
-    wheelDeltaAccumulator = 0;
-    reverseWheelAccumulator = 0;
-    lastSnapSettledAt = performance.now();
-    wheelTailSuppressUntil = lastSnapSettledAt + WHEEL_TAIL_SUPPRESS_MS;
-    wheelReverseSuppressUntil = lastSnapSettledAt + WHEEL_REVERSE_SUPPRESS_MS;
+    resetScrollGestureState({ resetTouch: true });
+    scrollInputLockedUntil = performance.now() + SNAP_SETTLE_LOCK_MS;
     updateScrollTopButton();
   };
 
@@ -579,65 +586,39 @@ scrollRoot?.addEventListener(
     event.preventDefault();
     const now = performance.now();
 
-    if (now - lastWheelAt > WHEEL_EVENT_GAP_MS) {
-      wheelDeltaAccumulator = 0;
+    if (now < scrollInputLockedUntil) {
+      resetScrollGestureState();
+      return;
     }
 
-    lastWheelAt = now;
-
     if (scrollAnimationFrame) {
-      wheelDeltaAccumulator = 0;
+      resetScrollGestureState();
       return;
     }
 
     const direction = event.deltaY > 0 ? 1 : -1;
-    const isLikelyInertiaTail =
-      now < wheelTailSuppressUntil &&
-      direction === lastSnapDirection &&
-      Math.abs(event.deltaY) < WHEEL_REENGAGE_DELTA;
-    const isLikelyReverseBounce =
-      now < wheelReverseSuppressUntil &&
-      direction === -lastSnapDirection &&
-      now - lastSnapSettledAt < WHEEL_REVERSE_REENGAGE_MIN_MS;
+    const startsNewGesture =
+      now - lastWheelAt > WHEEL_EVENT_GAP_MS || wheelGestureDirection !== direction;
 
-    if (isLikelyInertiaTail) {
-      reverseWheelAccumulator = 0;
+    if (startsNewGesture) {
       wheelDeltaAccumulator = 0;
-      return;
+      wheelGestureEventCount = 0;
+      wheelGestureDirection = direction;
     }
 
-    if (isLikelyReverseBounce) {
-      wheelDeltaAccumulator = 0;
-      return;
-    }
-
-    if (now < wheelReverseSuppressUntil && direction === -lastSnapDirection) {
-      if (now - lastReverseWheelAt > WHEEL_EVENT_GAP_MS) {
-        reverseWheelAccumulator = 0;
-      }
-
-      lastReverseWheelAt = now;
-      reverseWheelAccumulator += Math.abs(event.deltaY);
-
-      if (reverseWheelAccumulator < WHEEL_REVERSE_REENGAGE_DELTA) {
-        wheelDeltaAccumulator = 0;
-        return;
-      }
-
-      reverseWheelAccumulator = 0;
-    } else {
-      reverseWheelAccumulator = 0;
-    }
-
+    lastWheelAt = now;
+    wheelGestureEventCount += 1;
     wheelDeltaAccumulator += event.deltaY;
 
-    if (Math.abs(wheelDeltaAccumulator) < WHEEL_DELTA_THRESHOLD) {
+    if (
+      wheelGestureEventCount < WHEEL_GESTURE_MIN_EVENTS ||
+      Math.abs(wheelDeltaAccumulator) < WHEEL_DELTA_THRESHOLD
+    ) {
       return;
     }
 
     const snapDirection = wheelDeltaAccumulator > 0 ? 1 : -1;
-    wheelDeltaAccumulator = 0;
-    lastSnapDirection = snapDirection;
+    resetScrollGestureState();
     scrollToSnapByDirection(snapDirection);
   },
   { passive: false },
@@ -696,9 +677,16 @@ scrollRoot?.addEventListener("touchend", (event) => {
   }
 
   if (scrollAnimationFrame) {
+    resetScrollGestureState({ resetTouch: true });
     return;
   }
 
+  if (performance.now() < scrollInputLockedUntil) {
+    resetScrollGestureState({ resetTouch: true });
+    return;
+  }
+
+  resetScrollGestureState({ resetTouch: true });
   scrollToSnapByDirection(deltaY > 0 ? 1 : -1);
 });
 
