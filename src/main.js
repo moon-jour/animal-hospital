@@ -34,32 +34,29 @@ document.querySelector("#app").innerHTML = `
     <a class="header-cta" href="#contact">문의</a>
   </header>
 
-  <main id="top" style="--reception-image: url('${receptionImageUrl}')">
-    <div class="reveal-section reveal-section--home is-visible" data-reveal-section>
-      <section class="hero" aria-label="병원 메인 이미지">
-        <div class="hero__content">
-          <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
-          <h1>${hospitalDisplayName}</h1>
-          <p class="hero__lead">
-            차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
-          </p>
-          <div class="hero__actions" aria-label="주요 행동">
-            <a class="button button--primary" href="#hours">진료시간 보기</a>
-            <a class="button button--ghost" href="#doctors">원장 소개</a>
-          </div>
+  <main id="top" class="snap-root" style="--reception-image: url('${receptionImageUrl}')">
+    <section class="hero snap-panel reveal-section is-visible" aria-label="병원 메인 이미지" data-reveal-section>
+      <div class="hero__content">
+        <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
+        <h1>${hospitalDisplayName}</h1>
+        <p class="hero__lead">
+          차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
+        </p>
+        <div class="hero__actions" aria-label="주요 행동">
+          <a class="button button--primary" href="#hours">진료시간 보기</a>
+          <a class="button button--ghost" href="#doctors">원장 소개</a>
         </div>
-      </section>
-
-      <section class="notice-band" aria-label="빠른 안내">
-        <div>
-          <span>365일 연중무휴 24시간 진료</span>
+      </div>
+      <div class="hero__notice" aria-label="빠른 안내">
+        <p>
+          <span>응급 내원 전 전화 문의</span>
           <strong>오전 10:00 - 오후 10:00, 야간 10:00 - 오전 10:00</strong>
-        </div>
+        </p>
         <a href="#contact">전화 문의 ${hospital.phone}</a>
-      </section>
-    </div>
+      </div>
+    </section>
 
-    <section class="section intro reveal-section" id="about" data-reveal-section>
+    <section class="section intro snap-panel reveal-section" id="about" data-reveal-section>
       <div class="section-kicker">24H CARE STANDARD</div>
       <div class="split">
         <div>
@@ -100,7 +97,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section section--dark reveal-section" id="hours" data-reveal-section>
+    <section class="section section--dark snap-panel reveal-section" id="hours" data-reveal-section>
       <div class="section-kicker">HOURS</div>
       <div class="split split--center">
         <div>
@@ -147,7 +144,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section doctors reveal-section" id="doctors" data-reveal-section>
+    <section class="section doctors snap-panel reveal-section" id="doctors" data-reveal-section>
       <div class="section-heading doctors-heading">
         <div>
           <div class="section-kicker">24H VETERINARY TEAM</div>
@@ -187,7 +184,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section services reveal-section" aria-label="진료 과목" data-reveal-section>
+    <section class="section services snap-panel reveal-section" aria-label="진료 과목" data-reveal-section>
       <div class="section-kicker">24H MEDICAL SERVICE</div>
       <div class="section-heading">
         <h2>수술, 재활, 내과, 응급 진료까지 한 곳에서 이어집니다.</h2>
@@ -225,7 +222,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="section space reveal-section" id="space" data-reveal-section>
+    <section class="section space snap-panel reveal-section" id="space" data-reveal-section>
       <div class="section-kicker">SPACE</div>
       <div class="space-layout">
         <div>
@@ -242,7 +239,7 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    <section class="contact reveal-section" id="contact" aria-label="문의" data-reveal-section>
+    <section class="contact snap-panel reveal-section" id="contact" aria-label="문의" data-reveal-section>
       <div>
         <p class="eyebrow">CONTACT</p>
         <h2>진료가 필요한 순간, 편하게 문의하세요.</h2>
@@ -251,38 +248,38 @@ document.querySelector("#app").innerHTML = `
         <span>${hospital.address}</span>
         <a href="tel:${hospital.phone.replaceAll("-", "")}">${hospital.phone}</a>
       </address>
+      <div class="contact__footer" aria-label="병원 정보">
+        <span>${hospital.name}</span>
+        <span>© <span id="year"></span> ${hospital.englishName}</span>
+      </div>
     </section>
   </main>
 
   <a class="scroll-top-button" href="#top" aria-label="맨 위로 이동">
     <span aria-hidden="true">↑</span>
   </a>
-
-  <footer>
-    <span>${hospital.name}</span>
-    <span>© <span id="year"></span> ${hospital.englishName}</span>
-  </footer>
 `;
 
 document.querySelector("#year").textContent = new Date().getFullYear();
 
-const siteHeader = document.querySelector(".site-header");
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const scrollRoot = document.querySelector(".snap-root");
 const scrollTopButton = document.querySelector(".scroll-top-button");
 const revealSections = Array.from(document.querySelectorAll("[data-reveal-section]"));
 
-const getHeaderHeight = () => siteHeader?.getBoundingClientRect().height ?? 0;
-
 const getTargetTop = (target) => {
-  if (!target || target === document.body) {
+  if (!scrollRoot || !target || target === document.body || target === scrollRoot) {
     return 0;
   }
 
-  return Math.max(0, target.getBoundingClientRect().top + window.scrollY - getHeaderHeight());
+  const rootRect = scrollRoot.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+
+  return Math.max(0, scrollRoot.scrollTop + targetRect.top - rootRect.top);
 };
 
 const scrollToTarget = (target, behavior = "smooth") => {
-  window.scrollTo({
+  scrollRoot?.scrollTo({
     top: getTargetTop(target),
     behavior: reducedMotionQuery.matches ? "auto" : behavior,
   });
@@ -293,10 +290,10 @@ const updateScrollTopButton = () => {
     return;
   }
 
-  scrollTopButton.classList.toggle("is-at-top", window.scrollY <= 8);
+  scrollTopButton.classList.toggle("is-at-top", (scrollRoot?.scrollTop ?? 0) <= 8);
 };
 
-window.addEventListener("scroll", updateScrollTopButton, { passive: true });
+scrollRoot?.addEventListener("scroll", updateScrollTopButton, { passive: true });
 updateScrollTopButton();
 
 let lastTopRequest = 0;
@@ -309,16 +306,17 @@ const goToPageTop = () => {
   }
 
   lastTopRequest = now;
-  scrollToTarget(document.body);
+  scrollToTarget(scrollRoot);
   window.setTimeout(updateScrollTopButton, reducedMotionQuery.matches ? 0 : 620);
 };
 
-scrollTopButton?.addEventListener("pointerup", (event) => {
+const handleTopButtonRequest = (event) => {
   event.preventDefault();
   goToPageTop();
-});
+};
 
-scrollTopButton?.addEventListener("click", goToPageTop);
+scrollTopButton?.addEventListener("pointerup", handleTopButtonRequest);
+scrollTopButton?.addEventListener("click", handleTopButtonRequest);
 
 scrollTopButton?.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") {
@@ -331,7 +329,8 @@ scrollTopButton?.addEventListener("keydown", (event) => {
 
 document.querySelectorAll('a[href^="#"]').forEach((link) => {
   link.addEventListener("click", (event) => {
-    const target = document.querySelector(link.getAttribute("href"));
+    const targetId = link.getAttribute("href");
+    const target = document.querySelector(targetId);
 
     if (!target) {
       return;
@@ -353,6 +352,7 @@ if ("IntersectionObserver" in window && !reducedMotionQuery.matches) {
       }
     },
     {
+      root: scrollRoot,
       rootMargin: "0px 0px -16% 0px",
       threshold: 0.12,
     },
@@ -367,6 +367,14 @@ if ("IntersectionObserver" in window && !reducedMotionQuery.matches) {
   for (const section of revealSections) {
     section.classList.add("is-visible");
   }
+}
+
+const initialTarget = window.location.hash
+  ? document.querySelector(window.location.hash)
+  : null;
+
+if (initialTarget && initialTarget !== scrollRoot) {
+  window.requestAnimationFrame(() => scrollToTarget(initialTarget, "auto"));
 }
 
 const hero = document.querySelector(".hero");
