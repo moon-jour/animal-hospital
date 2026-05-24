@@ -275,6 +275,18 @@ test("about carousel advances, loops, jumps, and pauses inside the second snap p
   await page.getByRole("button", { name: "3번째 병원 소개 화면으로 이동" }).click();
   await expect.poll(activeAboutSlideIndex).toBe(2);
 
+  const compactContentPlacement = await page.evaluate(() => {
+    const activeSlide = document.querySelector(".about-slide.is-active");
+    const compactContent = activeSlide?.querySelector(".about-slide__content--compact");
+    const slideRect = activeSlide.getBoundingClientRect();
+    const contentRect = compactContent.getBoundingClientRect();
+
+    return (contentRect.left + contentRect.width / 2 - slideRect.left) / slideRect.width;
+  });
+
+  expect(compactContentPlacement).toBeGreaterThan(0.36);
+  expect(compactContentPlacement).toBeLessThan(0.42);
+
   const pauseButton = page.getByRole("button", { name: "병원 소개 슬라이드 일시정지" });
   await pauseButton.click();
   await expect(page.getByRole("button", { name: "병원 소개 슬라이드 재생" })).toBeVisible();

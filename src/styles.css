@@ -469,7 +469,10 @@ img {
 }
 
 .about-slide__content--compact {
-  max-width: 760px;
+  width: min(760px, 100%);
+  max-width: none;
+  margin-right: auto;
+  margin-left: clamp(0px, calc(38.2% - min(380px, 50%)), 360px);
 }
 
 .about-slide__content--compact h2 {
