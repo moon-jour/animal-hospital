@@ -231,29 +231,54 @@ test("wheel snap accepts another deliberate scroll shortly after settling", asyn
   expect(result.finalIndex).toBe(2);
 });
 
-test("hero carousel advances, loops, jumps, and pauses inside the first snap panel", async ({ page }) => {
+test("about carousel advances, loops, jumps, and pauses inside the second snap panel", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
 
-  const activeHeroSlideIndex = () =>
+  const activeAboutSlideIndex = () =>
     page.evaluate(() =>
-      Array.from(document.querySelectorAll("[data-hero-slide]")).findIndex((slide) =>
+      Array.from(document.querySelectorAll("[data-about-slide]")).findIndex((slide) =>
         slide.classList.contains("is-active"),
       ),
     );
+  const controlStyles = await page.evaluate(() => {
+    const controls = document.querySelector(".about-slide-controls");
+    const toggle = document.querySelector(".about-slide-toggle");
+    const activeDot = document.querySelector(".about-slide-dot.is-active");
+    const activeContent = document.querySelector(".about-slide.is-active .about-slide__content");
+    const activeVisual = document.querySelector(".about-slide.is-active .about-slide__visual");
 
-  await expect.poll(activeHeroSlideIndex).toBe(0);
-  await expect.poll(activeHeroSlideIndex, { timeout: 3200 }).toBe(1);
-  await expect.poll(activeHeroSlideIndex, { timeout: 3200 }).toBe(2);
-  await expect.poll(activeHeroSlideIndex, { timeout: 3200 }).toBe(0);
+    return {
+      activeDotBackground: getComputedStyle(activeDot).backgroundColor,
+      activeDotBorder: getComputedStyle(activeDot).borderTopColor,
+      controlsBackground: getComputedStyle(controls).backgroundColor,
+      contentTransitionDelay: getComputedStyle(activeContent).transitionDelay,
+      toggleBorder: getComputedStyle(toggle).borderTopColor,
+      visualBackground: getComputedStyle(activeVisual).backgroundColor,
+      visualTransitionDelay: getComputedStyle(activeVisual).transitionDelay,
+    };
+  });
 
-  await page.getByRole("button", { name: "3번째 메인 화면으로 이동" }).click();
-  await expect.poll(activeHeroSlideIndex).toBe(2);
+  expect(controlStyles.controlsBackground).toBe("rgb(1, 62, 106)");
+  expect(controlStyles.activeDotBackground).toBe("rgb(1, 62, 106)");
+  expect(controlStyles.activeDotBorder).toBe("rgb(255, 255, 255)");
+  expect(controlStyles.toggleBorder).toBe("rgb(255, 255, 255)");
+  expect(controlStyles.contentTransitionDelay).toContain("0.26s");
+  expect(controlStyles.visualBackground).toBe("rgba(1, 62, 106, 0.08)");
+  expect(controlStyles.visualTransitionDelay).toContain("0.08s");
 
-  const pauseButton = page.getByRole("button", { name: "메인 슬라이드 일시정지" });
+  await expect.poll(activeAboutSlideIndex).toBe(0);
+  await expect.poll(activeAboutSlideIndex, { timeout: 5200 }).toBe(1);
+  await expect.poll(activeAboutSlideIndex, { timeout: 5200 }).toBe(2);
+  await expect.poll(activeAboutSlideIndex, { timeout: 5200 }).toBe(0);
+
+  await page.getByRole("button", { name: "3번째 병원 소개 화면으로 이동" }).click();
+  await expect.poll(activeAboutSlideIndex).toBe(2);
+
+  const pauseButton = page.getByRole("button", { name: "병원 소개 슬라이드 일시정지" });
   await pauseButton.click();
-  await expect(page.getByRole("button", { name: "메인 슬라이드 재생" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "병원 소개 슬라이드 재생" })).toBeVisible();
 
-  await page.waitForTimeout(2300);
-  await expect.poll(activeHeroSlideIndex).toBe(2);
+  await page.waitForTimeout(4300);
+  await expect.poll(activeAboutSlideIndex).toBe(2);
 });

@@ -36,87 +36,92 @@ document.querySelector("#app").innerHTML = `
 
   <main id="top" class="snap-root" style="--reception-image: url('${receptionImageUrl}')">
     <section class="hero snap-panel reveal-section is-visible" aria-label="병원 메인 이미지" data-reveal-section>
-      <div class="hero-slider" aria-live="polite">
-        <article class="hero-slide is-active" data-hero-slide>
-          <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
-          <h1>${hospitalDisplayName}</h1>
-          <p class="hero__lead">
-            차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
-          </p>
-          <div class="hero__actions" aria-label="주요 행동">
-            <a class="button button--primary" href="#hours">진료시간 보기</a>
-            <a class="button button--ghost" href="#doctors">원장 소개</a>
-          </div>
-        </article>
-        <article class="hero-slide" data-hero-slide aria-hidden="true">
-          <p class="eyebrow">EMERGENCY CARE</p>
-          <h1>밤과 휴일에도 이어지는 진료</h1>
-          <p class="hero__lead">
-            갑작스러운 증상과 사고에도 차분하게 대응할 수 있도록 24시간 진료 흐름을 갖추었습니다.
-          </p>
-          <div class="hero__actions" aria-label="주요 행동">
-            <a class="button button--primary" href="#contact">전화 문의</a>
-            <a class="button button--ghost" href="#hours">진료 안내</a>
-          </div>
-        </article>
-        <article class="hero-slide" data-hero-slide aria-hidden="true">
-          <p class="eyebrow">VETERINARY TEAM</p>
-          <h1>두 대표원장이 직접 살피는 진료</h1>
-          <p class="hero__lead">
-            검사부터 치료 선택지, 회복 관리까지 보호자가 이해할 수 있는 언어로 분명하게 설명합니다.
-          </p>
-          <div class="hero__actions" aria-label="주요 행동">
-            <a class="button button--primary" href="#doctors">의료진 보기</a>
-            <a class="button button--ghost" href="#space">공간 보기</a>
-          </div>
-        </article>
-      </div>
-      <div class="hero-slide-controls" aria-label="메인 슬라이드 제어">
-        <button class="hero-slide-toggle" type="button" aria-pressed="false" data-hero-slide-toggle>
-          <span aria-hidden="true">||</span>
-        </button>
-        <div class="hero-slide-dots" aria-label="메인 화면 단계 이동" data-hero-slide-dots></div>
+      <div class="hero__content">
+        <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
+        <h1>${hospitalDisplayName}</h1>
+        <p class="hero__lead">
+          차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
+        </p>
+        <div class="hero__actions" aria-label="주요 행동">
+          <a class="button button--primary" href="#hours">진료시간 보기</a>
+          <a class="button button--ghost" href="#doctors">원장 소개</a>
+        </div>
       </div>
     </section>
 
-    <section class="section intro snap-panel reveal-section" id="about" data-reveal-section>
-      <div class="section-kicker">24H CARE STANDARD</div>
-      <div class="split">
-        <div>
-          <h2>차분한 공간과 정확한 설명, 필요한 진료를 한 곳에서.</h2>
-        </div>
-        <div class="copy-stack">
-          <p>
-            ${hospital.name}는 밤과 휴일에도 진료가 이어지는 동물의료센터입니다. 보호자가 불안한 순간에도
-            차분하게 이해할 수 있도록 검사와 치료 과정을 명확하게 설명합니다.
-          </p>
-          <p>
-            진료실, 처치실, 입원 공간의 동선을 세심하게 구성해 반려동물의 스트레스를 줄이고
-            수의사가 신속하게 대응할 수 있는 환경을 갖추었습니다.
-          </p>
-        </div>
+    <section class="intro snap-panel reveal-section" id="about" data-reveal-section>
+      <div class="about-carousel" aria-live="polite">
+        <article class="about-slide about-slide--care is-active" data-about-slide>
+          <div class="about-slide__visual" aria-hidden="true"></div>
+          <div class="about-slide__content">
+            <div class="section-kicker">24H CARE STANDARD</div>
+            <div class="split">
+              <div>
+                <h2>차분한 공간과 정확한 설명, 필요한 진료를 한 곳에서.</h2>
+              </div>
+              <div class="copy-stack">
+                <p>
+                  ${hospital.name}는 밤과 휴일에도 진료가 이어지는 동물의료센터입니다. 보호자가 불안한 순간에도
+                  차분하게 이해할 수 있도록 검사와 치료 과정을 명확하게 설명합니다.
+                </p>
+                <p>
+                  진료실, 처치실, 입원 공간의 동선을 세심하게 구성해 반려동물의 스트레스를 줄이고
+                  수의사가 신속하게 대응할 수 있는 환경을 갖추었습니다.
+                </p>
+              </div>
+            </div>
+            <div class="feature-grid" aria-label="병원 특징">
+              <article>
+                <span>01</span>
+                <h3>책임 진료</h3>
+                <p>두 대표원장이 응급 상황부터 수술 상담까지 직접 살핍니다.</p>
+              </article>
+              <article>
+                <span>02</span>
+                <h3>정밀한 설명</h3>
+                <p>검사 결과와 치료 선택지를 보호자의 언어로 분명하게 안내합니다.</p>
+              </article>
+              <article>
+                <span>03</span>
+                <h3>분야별 진료</h3>
+                <p>외과, 재활, 내과, 응급 진료를 한 흐름으로 연결해 치료 방향을 세웁니다.</p>
+              </article>
+              <article>
+                <span>04</span>
+                <h3>안정적인 공간</h3>
+                <p>화이트와 네이비 톤의 정돈된 공간으로 대기부터 진료까지 안정감을 더했습니다.</p>
+              </article>
+            </div>
+          </div>
+        </article>
+        <article class="about-slide about-slide--explain" data-about-slide aria-hidden="true">
+          <div class="about-slide__visual" aria-hidden="true"></div>
+          <div class="about-slide__content about-slide__content--compact">
+            <div class="section-kicker">CLEAR COMMUNICATION</div>
+            <h2>보호자가 이해할 수 있는 언어로 진료 과정을 설명합니다.</h2>
+            <p>
+              검사 결과, 치료 선택지, 회복 계획을 차분하게 나누어 안내합니다.
+              필요한 진료를 놓치지 않되 과한 불안을 만들지 않는 설명을 중요하게 생각합니다.
+            </p>
+          </div>
+        </article>
+        <article class="about-slide about-slide--space" data-about-slide aria-hidden="true">
+          <div class="about-slide__visual" aria-hidden="true"></div>
+          <div class="about-slide__content about-slide__content--compact">
+            <div class="section-kicker">CALM MEDICAL SPACE</div>
+            <h2>대기부터 진료까지 안정감을 주는 동선을 준비했습니다.</h2>
+            <p>
+              은은한 조명, 분리된 진료 동선, 정돈된 처치 공간으로 반려동물이 머무는 시간을
+              더 조용하고 안정적으로 만듭니다.
+            </p>
+          </div>
+        </article>
       </div>
-      <div class="feature-grid" aria-label="병원 특징">
-        <article>
-          <span>01</span>
-          <h3>책임 진료</h3>
-          <p>두 대표원장이 응급 상황부터 수술 상담까지 직접 살핍니다.</p>
-        </article>
-        <article>
-          <span>02</span>
-          <h3>정밀한 설명</h3>
-          <p>검사 결과와 치료 선택지를 보호자의 언어로 분명하게 안내합니다.</p>
-        </article>
-        <article>
-          <span>03</span>
-          <h3>분야별 진료</h3>
-          <p>외과, 재활, 내과, 응급 진료를 한 흐름으로 연결해 치료 방향을 세웁니다.</p>
-        </article>
-        <article>
-          <span>04</span>
-          <h3>안정적인 공간</h3>
-          <p>화이트와 네이비 톤의 정돈된 공간으로 대기부터 진료까지 안정감을 더했습니다.</p>
-        </article>
+      <div class="about-slide-controls" aria-label="병원 소개 슬라이드 제어">
+        <button class="about-slide-toggle" type="button" aria-pressed="false" data-about-slide-toggle>
+          <span aria-hidden="true">||</span>
+        </button>
+        <div class="about-slide-dots" aria-label="병원 소개 화면 단계 이동" data-about-slide-dots></div>
       </div>
     </section>
 
@@ -670,113 +675,113 @@ if (initialTarget && initialTarget !== scrollRoot) {
 }
 
 const hero = document.querySelector(".hero");
-const heroSlides = Array.from(document.querySelectorAll("[data-hero-slide]"));
-const heroSlideDots = document.querySelector("[data-hero-slide-dots]");
-const heroSlideToggle = document.querySelector("[data-hero-slide-toggle]");
-const HERO_SLIDE_INTERVAL = 2000;
-let activeHeroSlide = 0;
-let heroSlideTimer = 0;
-let isHeroSlidePaused = reducedMotionQuery.matches;
+const aboutSlides = Array.from(document.querySelectorAll("[data-about-slide]"));
+const aboutSlideDots = document.querySelector("[data-about-slide-dots]");
+const aboutSlideToggle = document.querySelector("[data-about-slide-toggle]");
+const ABOUT_SLIDE_INTERVAL = 4000;
+let activeAboutSlide = 0;
+let aboutSlideTimer = 0;
+let isAboutSlidePaused = reducedMotionQuery.matches;
 
-if (heroSlideDots) {
-  heroSlideDots.innerHTML = heroSlides
+if (aboutSlideDots) {
+  aboutSlideDots.innerHTML = aboutSlides
     .map(
       (_slide, index) => `
-        <button class="hero-slide-dot" type="button" aria-label="${index + 1}번째 메인 화면으로 이동" data-hero-slide-index="${index}"></button>
+        <button class="about-slide-dot" type="button" aria-label="${index + 1}번째 병원 소개 화면으로 이동" data-about-slide-index="${index}"></button>
       `,
     )
     .join("");
 }
 
-const heroSlideDotButtons = Array.from(document.querySelectorAll("[data-hero-slide-index]"));
+const aboutSlideDotButtons = Array.from(document.querySelectorAll("[data-about-slide-index]"));
 
-const renderHeroSlides = () => {
-  for (const [index, slide] of heroSlides.entries()) {
-    const isActive = index === activeHeroSlide;
+const renderAboutSlides = () => {
+  for (const [index, slide] of aboutSlides.entries()) {
+    const isActive = index === activeAboutSlide;
 
     slide.classList.toggle("is-active", isActive);
     slide.setAttribute("aria-hidden", String(!isActive));
   }
 
-  for (const button of heroSlideDotButtons) {
-    const isActive = Number(button.dataset.heroSlideIndex) === activeHeroSlide;
+  for (const button of aboutSlideDotButtons) {
+    const isActive = Number(button.dataset.aboutSlideIndex) === activeAboutSlide;
 
     button.classList.toggle("is-active", isActive);
     button.toggleAttribute("aria-current", isActive);
   }
 
-  if (heroSlideToggle) {
-    heroSlideToggle.setAttribute("aria-pressed", String(isHeroSlidePaused));
-    heroSlideToggle.setAttribute("aria-label", isHeroSlidePaused ? "메인 슬라이드 재생" : "메인 슬라이드 일시정지");
-    heroSlideToggle.querySelector("span").textContent = isHeroSlidePaused ? ">" : "||";
+  if (aboutSlideToggle) {
+    aboutSlideToggle.setAttribute("aria-pressed", String(isAboutSlidePaused));
+    aboutSlideToggle.setAttribute("aria-label", isAboutSlidePaused ? "병원 소개 슬라이드 재생" : "병원 소개 슬라이드 일시정지");
+    aboutSlideToggle.querySelector("span").textContent = isAboutSlidePaused ? ">" : "||";
   }
 };
 
-const showHeroSlide = (index) => {
-  activeHeroSlide = clamp(index, 0, heroSlides.length - 1);
-  renderHeroSlides();
+const showAboutSlide = (index) => {
+  activeAboutSlide = clamp(index, 0, aboutSlides.length - 1);
+  renderAboutSlides();
 };
 
-const clearHeroSlideTimer = () => {
-  window.clearTimeout(heroSlideTimer);
-  heroSlideTimer = 0;
+const clearAboutSlideTimer = () => {
+  window.clearTimeout(aboutSlideTimer);
+  aboutSlideTimer = 0;
 };
 
-const scheduleHeroSlide = () => {
-  clearHeroSlideTimer();
+const scheduleAboutSlide = () => {
+  clearAboutSlideTimer();
 
-  if (isHeroSlidePaused || heroSlides.length < 2) {
+  if (isAboutSlidePaused || aboutSlides.length < 2) {
     return;
   }
 
-  heroSlideTimer = window.setTimeout(() => {
+  aboutSlideTimer = window.setTimeout(() => {
     if (document.visibilityState === "visible") {
-      showHeroSlide((activeHeroSlide + 1) % heroSlides.length);
+      showAboutSlide((activeAboutSlide + 1) % aboutSlides.length);
     }
 
-    scheduleHeroSlide();
-  }, HERO_SLIDE_INTERVAL);
+    scheduleAboutSlide();
+  }, ABOUT_SLIDE_INTERVAL);
 };
 
-const pauseHeroSlides = () => {
-  isHeroSlidePaused = true;
-  clearHeroSlideTimer();
-  renderHeroSlides();
+const pauseAboutSlides = () => {
+  isAboutSlidePaused = true;
+  clearAboutSlideTimer();
+  renderAboutSlides();
 };
 
-const resumeHeroSlides = () => {
-  isHeroSlidePaused = false;
-  renderHeroSlides();
-  scheduleHeroSlide();
+const resumeAboutSlides = () => {
+  isAboutSlidePaused = false;
+  renderAboutSlides();
+  scheduleAboutSlide();
 };
 
-for (const button of heroSlideDotButtons) {
+for (const button of aboutSlideDotButtons) {
   button.addEventListener("click", () => {
-    showHeroSlide(Number(button.dataset.heroSlideIndex));
-    scheduleHeroSlide();
+    showAboutSlide(Number(button.dataset.aboutSlideIndex));
+    scheduleAboutSlide();
   });
 }
 
-heroSlideToggle?.addEventListener("click", () => {
-  if (isHeroSlidePaused) {
-    resumeHeroSlides();
+aboutSlideToggle?.addEventListener("click", () => {
+  if (isAboutSlidePaused) {
+    resumeAboutSlides();
     return;
   }
 
-  pauseHeroSlides();
+  pauseAboutSlides();
 });
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    scheduleHeroSlide();
+    scheduleAboutSlide();
     return;
   }
 
-  clearHeroSlideTimer();
+  clearAboutSlideTimer();
 });
 
-renderHeroSlides();
-scheduleHeroSlide();
+renderAboutSlides();
+scheduleAboutSlide();
 
 const canAnimateHero =
   window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
