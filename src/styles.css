@@ -254,6 +254,8 @@ img {
 .hero {
   --hero-bg-shift-x: 0px;
   --hero-bg-shift-y: 0px;
+  --hero-fg-base-x: clamp(14px, 2.2vw, 30px);
+  --hero-fg-base-y: clamp(12px, 2vh, 22px);
   --hero-fg-shift-x: 0px;
   --hero-fg-shift-y: 0px;
   --hero-bg-position-x: 42%;
@@ -324,7 +326,11 @@ img {
   height: 100%;
   object-fit: cover;
   object-position: var(--hero-fg-position-x) center;
-  transform: translate3d(var(--hero-fg-shift-x), var(--hero-fg-shift-y), 0)
+  transform: translate3d(
+      calc(var(--hero-fg-base-x) + var(--hero-fg-shift-x)),
+      calc(var(--hero-fg-base-y) + var(--hero-fg-shift-y)),
+      0
+    )
     scale(1.015);
   transition: transform 700ms cubic-bezier(0.19, 1, 0.22, 1);
   will-change: transform;

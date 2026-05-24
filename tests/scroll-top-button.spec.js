@@ -64,6 +64,7 @@ test("hero uses layered care images and fades the entry text without lead copy",
     canvas.width = foreground.naturalWidth;
     canvas.height = foreground.naturalHeight;
     context.drawImage(foreground, 0, 0);
+    const foregroundTransform = new DOMMatrixReadOnly(getComputedStyle(foreground).transform);
 
     return {
       actionsAnimation: getComputedStyle(actions).animationName,
@@ -77,6 +78,8 @@ test("hero uses layered care images and fades the entry text without lead copy",
       foregroundFit: getComputedStyle(foreground).objectFit,
       foregroundPositionX: getComputedStyle(hero).getPropertyValue("--hero-fg-position-x").trim(),
       foregroundSrc: foreground.getAttribute("src"),
+      foregroundTransformX: foregroundTransform.e,
+      foregroundTransformY: foregroundTransform.f,
       hasLead: Boolean(lead),
       heroStyle: main.getAttribute("style"),
       eyebrowAnimation: getComputedStyle(eyebrow).animationName,
@@ -102,6 +105,8 @@ test("hero uses layered care images and fades the entry text without lead copy",
   expect(heroDetails.actionsDelay).toContain("0.72s");
   expect(heroDetails.backgroundPositionX).toBe("42%");
   expect(heroDetails.foregroundPositionX).toBe("42%");
+  expect(heroDetails.foregroundTransformX).toBeGreaterThan(10);
+  expect(heroDetails.foregroundTransformY).toBeGreaterThan(10);
   expect(heroDetails.backgroundScale).toBe("1.08");
   expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.5)");
   expect(Number.parseFloat(heroDetails.contentMarginTop)).toBeGreaterThan(24);
