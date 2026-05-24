@@ -35,25 +35,48 @@ test("floating top button is present and returns mobile users to the top", async
   await verifyScrollTopButton(page, { width: 390, height: 844 });
 });
 
-test("hero uses the care image and fades the entry text without lead copy", async ({ page }) => {
+test("hero uses layered care images and fades the entry text without lead copy", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const foreground = document.querySelector(".hero__foreground");
+
+        return Boolean(foreground?.complete && foreground.naturalWidth > 0);
+      }),
+    )
+    .toBe(true);
 
   const heroDetails = await page.evaluate(() => {
     const main = document.querySelector("main#top");
     const lead = document.querySelector(".hero__lead");
     const hero = document.querySelector(".hero");
+    const background = document.querySelector(".hero__background");
+    const foreground = document.querySelector(".hero__foreground");
     const eyebrow = document.querySelector(".hero .eyebrow");
     const title = document.querySelector(".hero h1");
     const actions = document.querySelector(".hero__actions");
     const content = document.querySelector(".hero__content");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    canvas.width = foreground.naturalWidth;
+    canvas.height = foreground.naturalHeight;
+    context.drawImage(foreground, 0, 0);
 
     return {
       actionsAnimation: getComputedStyle(actions).animationName,
       actionsDelay: getComputedStyle(actions).animationDelay,
       actionsDuration: getComputedStyle(actions).animationDuration,
-      backgroundPositionX: getComputedStyle(hero).getPropertyValue("--hero-bg-x").trim(),
+      backgroundImage: getComputedStyle(background).backgroundImage,
+      backgroundPositionX: getComputedStyle(hero).getPropertyValue("--hero-bg-position-x").trim(),
+      backgroundScale: getComputedStyle(hero).getPropertyValue("--hero-bg-scale").trim(),
       contentMarginTop: getComputedStyle(content).marginTop,
+      foregroundAlpha: context.getImageData(0, 0, 1, 1).data[3],
+      foregroundFit: getComputedStyle(foreground).objectFit,
+      foregroundPositionX: getComputedStyle(hero).getPropertyValue("--hero-fg-position-x").trim(),
+      foregroundSrc: foreground.getAttribute("src"),
       hasLead: Boolean(lead),
       heroStyle: main.getAttribute("style"),
       eyebrowAnimation: getComputedStyle(eyebrow).animationName,
@@ -64,7 +87,11 @@ test("hero uses the care image and fades the entry text without lead copy", asyn
     };
   });
 
-  expect(heroDetails.heroStyle).toContain("main-care-hero.jpg");
+  expect(heroDetails.heroStyle).toContain("hero-room-background.jpg");
+  expect(heroDetails.backgroundImage).toContain("hero-room-background.jpg");
+  expect(heroDetails.foregroundSrc).toContain("hero-care-team.png");
+  expect(heroDetails.foregroundAlpha).toBe(0);
+  expect(heroDetails.foregroundFit).toBe("cover");
   expect(heroDetails.hasLead).toBe(false);
   expect(heroDetails.eyebrowAnimation).toBe("heroTextFadeIn");
   expect(heroDetails.titleAnimation).toBe("heroTextFadeIn");
@@ -74,7 +101,9 @@ test("hero uses the care image and fades the entry text without lead copy", asyn
   expect(heroDetails.titleDelay).toContain("0.36s");
   expect(heroDetails.actionsDelay).toContain("0.72s");
   expect(heroDetails.backgroundPositionX).toBe("42%");
-  expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.62)");
+  expect(heroDetails.foregroundPositionX).toBe("42%");
+  expect(heroDetails.backgroundScale).toBe("1.08");
+  expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.5)");
   expect(Number.parseFloat(heroDetails.contentMarginTop)).toBeGreaterThan(24);
 });
 
@@ -276,6 +305,81 @@ test("opposite wheel rebound after a downward snap does not return to the previo
 
   expect(result.finalIndex).toBe(1);
   expect(result.finalTop).toBe(result.panelHeight);
+});
+
+test("large delayed reverse rebound after a snap does not jump back", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const sendWheel = (deltaY) => {
+      scrollRoot.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY,
+        }),
+      );
+    };
+
+    scrollRoot.scrollTo({ top: 0, behavior: "auto" });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    sendWheel(640);
+    await wait(1480);
+    sendWheel(-720);
+    await wait(760);
+
+    return {
+      finalIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+      finalTop: Math.round(scrollRoot.scrollTop),
+      panelHeight: Math.round(panelHeight),
+    };
+  });
+
+  expect(result.finalIndex).toBe(1);
+  expect(result.finalTop).toBe(result.panelHeight);
+});
+
+test("wheel snap still allows a deliberate reverse scroll after settling", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const sendWheel = (deltaY) => {
+      scrollRoot.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY,
+        }),
+      );
+    };
+
+    scrollRoot.scrollTo({ top: 0, behavior: "auto" });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    sendWheel(640);
+    await wait(1960);
+    const firstIndex = Math.round(scrollRoot.scrollTop / panelHeight);
+
+    sendWheel(-640);
+    await wait(1140);
+
+    return {
+      finalIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+      firstIndex,
+    };
+  });
+
+  expect(result.firstIndex).toBe(1);
+  expect(result.finalIndex).toBe(0);
 });
 
 test("wheel snap accepts another deliberate scroll shortly after settling", async ({ page }) => {

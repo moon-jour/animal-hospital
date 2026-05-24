@@ -9,7 +9,8 @@ const hospital = {
 
 const hospitalDisplayName = hospital.name.replace("동물", "<wbr />동물");
 const imageUrl = (filename) => `${import.meta.env.BASE_URL}images/${filename}`;
-const heroImageUrl = imageUrl("main-care-hero.jpg");
+const heroBackgroundImageUrl = imageUrl("hero-room-background.jpg");
+const heroForegroundImageUrl = imageUrl("hero-care-team.png");
 const logoImageUrl = imageUrl("hospital-symbol.jpeg");
 const hongDoctorImageUrl = imageUrl("doctor-hong-card.png");
 const kimDoctorImageUrl = imageUrl("doctor-kim-card.png");
@@ -103,8 +104,12 @@ document.querySelector("#app").innerHTML = `
     <a class="header-cta" href="#contact">문의</a>
   </header>
 
-  <main id="top" class="snap-root" style="--reception-image: url('${heroImageUrl}')">
+  <main id="top" class="snap-root" style="--hero-background-image: url('${heroBackgroundImageUrl}')">
     <section class="hero snap-panel reveal-section is-visible" aria-label="병원 메인 이미지" data-reveal-section>
+      <div class="hero__media" aria-hidden="true">
+        <div class="hero__background"></div>
+        <img class="hero__foreground" src="${heroForegroundImageUrl}" alt="" />
+      </div>
       <div class="hero__content">
         <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
         <h1>${hospitalDisplayName}</h1>
@@ -407,13 +412,19 @@ const TOUCH_DELTA_THRESHOLD = 48;
 const WHEEL_EVENT_GAP_MS = 180;
 const WHEEL_TAIL_SUPPRESS_MS = 420;
 const WHEEL_REENGAGE_DELTA = 300;
-const WHEEL_REVERSE_REENGAGE_DELTA = 520;
+const WHEEL_REVERSE_SUPPRESS_MS = 920;
+const WHEEL_REVERSE_REENGAGE_MIN_MS = 720;
+const WHEEL_REVERSE_REENGAGE_DELTA = 780;
 
 let scrollAnimationFrame = 0;
 let wheelDeltaAccumulator = 0;
 let lastWheelAt = 0;
 let lastSnapDirection = 0;
+let lastSnapSettledAt = 0;
 let wheelTailSuppressUntil = 0;
+let wheelReverseSuppressUntil = 0;
+let reverseWheelAccumulator = 0;
+let lastReverseWheelAt = 0;
 let touchStartX = 0;
 let touchStartY = 0;
 let touchTracking = false;
@@ -506,7 +517,10 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
     scrollRoot.classList.remove("is-controlled-scroll");
     scrollAnimationFrame = 0;
     wheelDeltaAccumulator = 0;
-    wheelTailSuppressUntil = performance.now() + WHEEL_TAIL_SUPPRESS_MS;
+    reverseWheelAccumulator = 0;
+    lastSnapSettledAt = performance.now();
+    wheelTailSuppressUntil = lastSnapSettledAt + WHEEL_TAIL_SUPPRESS_MS;
+    wheelReverseSuppressUntil = lastSnapSettledAt + WHEEL_REVERSE_SUPPRESS_MS;
     updateScrollTopButton();
   };
 
@@ -582,13 +596,37 @@ scrollRoot?.addEventListener(
       direction === lastSnapDirection &&
       Math.abs(event.deltaY) < WHEEL_REENGAGE_DELTA;
     const isLikelyReverseBounce =
-      now < wheelTailSuppressUntil &&
+      now < wheelReverseSuppressUntil &&
       direction === -lastSnapDirection &&
-      Math.abs(event.deltaY) < WHEEL_REVERSE_REENGAGE_DELTA;
+      now - lastSnapSettledAt < WHEEL_REVERSE_REENGAGE_MIN_MS;
 
-    if (isLikelyInertiaTail || isLikelyReverseBounce) {
+    if (isLikelyInertiaTail) {
+      reverseWheelAccumulator = 0;
       wheelDeltaAccumulator = 0;
       return;
+    }
+
+    if (isLikelyReverseBounce) {
+      wheelDeltaAccumulator = 0;
+      return;
+    }
+
+    if (now < wheelReverseSuppressUntil && direction === -lastSnapDirection) {
+      if (now - lastReverseWheelAt > WHEEL_EVENT_GAP_MS) {
+        reverseWheelAccumulator = 0;
+      }
+
+      lastReverseWheelAt = now;
+      reverseWheelAccumulator += Math.abs(event.deltaY);
+
+      if (reverseWheelAccumulator < WHEEL_REVERSE_REENGAGE_DELTA) {
+        wheelDeltaAccumulator = 0;
+        return;
+      }
+
+      reverseWheelAccumulator = 0;
+    } else {
+      reverseWheelAccumulator = 0;
     }
 
     wheelDeltaAccumulator += event.deltaY;
@@ -1008,12 +1046,16 @@ const canAnimateHero =
 
 if (hero && canAnimateHero) {
   let animationFrame = 0;
-  let nextX = "0px";
-  let nextY = "0px";
+  let nextBgX = "0px";
+  let nextBgY = "0px";
+  let nextFgX = "0px";
+  let nextFgY = "0px";
 
   const applyHeroShift = () => {
-    hero.style.setProperty("--hero-shift-x", nextX);
-    hero.style.setProperty("--hero-shift-y", nextY);
+    hero.style.setProperty("--hero-bg-shift-x", nextBgX);
+    hero.style.setProperty("--hero-bg-shift-y", nextBgY);
+    hero.style.setProperty("--hero-fg-shift-x", nextFgX);
+    hero.style.setProperty("--hero-fg-shift-y", nextFgY);
     animationFrame = 0;
   };
 
@@ -1022,8 +1064,10 @@ if (hero && canAnimateHero) {
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
 
-    nextX = `${(-x * 18).toFixed(2)}px`;
-    nextY = `${(-y * 12).toFixed(2)}px`;
+    nextBgX = `${(-x * 30).toFixed(2)}px`;
+    nextBgY = `${(-y * 20).toFixed(2)}px`;
+    nextFgX = `${(-x * 10).toFixed(2)}px`;
+    nextFgY = `${(-y * 6).toFixed(2)}px`;
 
     if (!animationFrame) {
       animationFrame = requestAnimationFrame(applyHeroShift);
@@ -1034,8 +1078,10 @@ if (hero && canAnimateHero) {
   hero.addEventListener("mousemove", updateHeroShift);
 
   hero.addEventListener("pointerleave", () => {
-    nextX = "0px";
-    nextY = "0px";
+    nextBgX = "0px";
+    nextBgY = "0px";
+    nextFgX = "0px";
+    nextFgY = "0px";
 
     if (!animationFrame) {
       animationFrame = requestAnimationFrame(applyHeroShift);
