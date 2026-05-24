@@ -49,10 +49,14 @@ body {
   overflow-y: auto;
   background: var(--paper);
   overscroll-behavior-y: contain;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   scroll-snap-type: y mandatory;
   scrollbar-color: rgba(1, 62, 106, 0.42) transparent;
   -webkit-overflow-scrolling: touch;
+}
+
+.snap-root.is-controlled-scroll {
+  scroll-snap-type: none;
 }
 
 .snap-panel {

@@ -83,3 +83,59 @@ test("snap panel content fits within one desktop viewport", async ({ page }) => 
 test("snap panel content fits within one mobile viewport", async ({ page }) => {
   await verifySnapPanelFit(page, { width: 390, height: 844 });
 });
+
+test("wheel snap scroll is controlled and does not overshoot the next panel", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const samples = [];
+
+    scrollRoot.scrollTo({ top: 0, behavior: "auto" });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const wheelEvent = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: 640,
+    });
+
+    scrollRoot.dispatchEvent(wheelEvent);
+
+    const startedAt = performance.now();
+
+    return new Promise((resolve) => {
+      const sample = () => {
+        const elapsed = performance.now() - startedAt;
+        samples.push({ elapsed, top: scrollRoot.scrollTop });
+
+        if (elapsed < 1180) {
+          requestAnimationFrame(sample);
+          return;
+        }
+
+        const tops = samples.map((entry) => entry.top);
+        const earlyTops = samples
+          .filter((entry) => entry.elapsed <= 280)
+          .map((entry) => entry.top);
+
+        resolve({
+          defaultPrevented: wheelEvent.defaultPrevented,
+          earlyMax: Math.round(Math.max(0, ...earlyTops)),
+          finalTop: Math.round(scrollRoot.scrollTop),
+          maxTop: Math.round(Math.max(...tops)),
+          panelHeight: Math.round(panelHeight),
+        });
+      };
+
+      requestAnimationFrame(sample);
+    });
+  });
+
+  expect(result.defaultPrevented).toBe(true);
+  expect(result.earlyMax).toBeLessThan(result.panelHeight * 0.45);
+  expect(result.maxTop).toBeLessThanOrEqual(result.panelHeight + 2);
+  expect(result.finalTop).toBe(result.panelHeight);
+});

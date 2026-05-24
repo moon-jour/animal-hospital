@@ -266,10 +266,44 @@ const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
 const scrollRoot = document.querySelector(".snap-root");
 const scrollTopButton = document.querySelector(".scroll-top-button");
 const revealSections = Array.from(document.querySelectorAll("[data-reveal-section]"));
+const snapPanels = Array.from(document.querySelectorAll(".snap-panel"));
+const SNAP_SCROLL_DURATION = 940;
+const WHEEL_DELTA_THRESHOLD = 44;
+const TOUCH_DELTA_THRESHOLD = 48;
+
+let scrollAnimationFrame = 0;
+let wheelDeltaAccumulator = 0;
+let lastWheelAt = 0;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchTracking = false;
+let touchMovedVertically = false;
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const easeInOutCubic = (progress) =>
+  progress < 0.5
+    ? 4 * progress * progress * progress
+    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+const stopScrollAnimation = () => {
+  if (scrollAnimationFrame) {
+    window.cancelAnimationFrame(scrollAnimationFrame);
+    scrollAnimationFrame = 0;
+  }
+
+  scrollRoot?.classList.remove("is-controlled-scroll");
+};
 
 const getTargetTop = (target) => {
   if (!scrollRoot || !target || target === document.body || target === scrollRoot) {
     return 0;
+  }
+
+  const snapPanelIndex = snapPanels.indexOf(target);
+
+  if (snapPanelIndex >= 0) {
+    return snapPanelIndex * scrollRoot.clientHeight;
   }
 
   const rootRect = scrollRoot.getBoundingClientRect();
@@ -278,11 +312,90 @@ const getTargetTop = (target) => {
   return Math.max(0, scrollRoot.scrollTop + targetRect.top - rootRect.top);
 };
 
+const getScrollDuration = (targetTop) => {
+  if (!scrollRoot) {
+    return SNAP_SCROLL_DURATION;
+  }
+
+  const panelDistance = Math.abs(targetTop - scrollRoot.scrollTop) / Math.max(1, scrollRoot.clientHeight);
+
+  return Math.min(1280, SNAP_SCROLL_DURATION + Math.max(0, panelDistance - 1) * 120);
+};
+
+const scrollToTopPosition = (targetTop, behavior = "smooth") => {
+  if (!scrollRoot) {
+    return;
+  }
+
+  const maxScrollTop = Math.max(0, scrollRoot.scrollHeight - scrollRoot.clientHeight);
+  const nextTop = clamp(targetTop, 0, maxScrollTop);
+
+  stopScrollAnimation();
+
+  if (reducedMotionQuery.matches || behavior === "auto") {
+    scrollRoot.scrollTo({ top: nextTop, behavior: "auto" });
+    updateScrollTopButton();
+    return;
+  }
+
+  const startTop = scrollRoot.scrollTop;
+  const distance = nextTop - startTop;
+
+  if (Math.abs(distance) < 1) {
+    scrollRoot.scrollTop = nextTop;
+    updateScrollTopButton();
+    return;
+  }
+
+  const duration = getScrollDuration(nextTop);
+  const startAt = performance.now();
+
+  scrollRoot.classList.add("is-controlled-scroll");
+
+  const step = (now) => {
+    const progress = clamp((now - startAt) / duration, 0, 1);
+
+    scrollRoot.scrollTop = startTop + distance * easeInOutCubic(progress);
+
+    if (progress < 1) {
+      scrollAnimationFrame = window.requestAnimationFrame(step);
+      return;
+    }
+
+    scrollRoot.scrollTop = nextTop;
+    scrollRoot.classList.remove("is-controlled-scroll");
+    scrollAnimationFrame = 0;
+    updateScrollTopButton();
+  };
+
+  scrollAnimationFrame = window.requestAnimationFrame(step);
+};
+
 const scrollToTarget = (target, behavior = "smooth") => {
-  scrollRoot?.scrollTo({
-    top: getTargetTop(target),
-    behavior: reducedMotionQuery.matches ? "auto" : behavior,
-  });
+  scrollToTopPosition(getTargetTop(target), behavior);
+};
+
+const getNextSnapIndex = (direction) => {
+  if (!scrollRoot || snapPanels.length === 0) {
+    return 0;
+  }
+
+  const maxIndex = snapPanels.length - 1;
+  const position = scrollRoot.scrollTop / Math.max(1, scrollRoot.clientHeight);
+
+  if (direction > 0) {
+    return clamp(Math.floor(position + 0.08) + 1, 0, maxIndex);
+  }
+
+  return clamp(Math.ceil(position - 0.08) - 1, 0, maxIndex);
+};
+
+const scrollToSnapByDirection = (direction) => {
+  const panel = snapPanels[getNextSnapIndex(direction)];
+
+  if (panel) {
+    scrollToTarget(panel);
+  }
 };
 
 const updateScrollTopButton = () => {
@@ -295,6 +408,133 @@ const updateScrollTopButton = () => {
 
 scrollRoot?.addEventListener("scroll", updateScrollTopButton, { passive: true });
 updateScrollTopButton();
+
+scrollRoot?.addEventListener(
+  "wheel",
+  (event) => {
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (scrollAnimationFrame) {
+      return;
+    }
+
+    const now = performance.now();
+
+    if (now - lastWheelAt > 220) {
+      wheelDeltaAccumulator = 0;
+    }
+
+    lastWheelAt = now;
+    wheelDeltaAccumulator += event.deltaY;
+
+    if (Math.abs(wheelDeltaAccumulator) < WHEEL_DELTA_THRESHOLD) {
+      return;
+    }
+
+    const direction = wheelDeltaAccumulator > 0 ? 1 : -1;
+    wheelDeltaAccumulator = 0;
+    scrollToSnapByDirection(direction);
+  },
+  { passive: false },
+);
+
+scrollRoot?.addEventListener(
+  "touchstart",
+  (event) => {
+    if (event.touches.length !== 1) {
+      touchTracking = false;
+      return;
+    }
+
+    touchTracking = true;
+    touchMovedVertically = false;
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+  },
+  { passive: true },
+);
+
+scrollRoot?.addEventListener(
+  "touchmove",
+  (event) => {
+    if (!touchTracking || event.touches.length !== 1) {
+      return;
+    }
+
+    const deltaX = event.touches[0].clientX - touchStartX;
+    const deltaY = event.touches[0].clientY - touchStartY;
+
+    if (Math.abs(deltaY) > 6 && Math.abs(deltaY) > Math.abs(deltaX)) {
+      touchMovedVertically = true;
+      event.preventDefault();
+    }
+  },
+  { passive: false },
+);
+
+scrollRoot?.addEventListener("touchend", (event) => {
+  if (!touchTracking) {
+    return;
+  }
+
+  touchTracking = false;
+
+  if (!touchMovedVertically || event.changedTouches.length === 0) {
+    return;
+  }
+
+  const deltaX = event.changedTouches[0].clientX - touchStartX;
+  const deltaY = touchStartY - event.changedTouches[0].clientY;
+
+  if (Math.abs(deltaY) < TOUCH_DELTA_THRESHOLD || Math.abs(deltaY) <= Math.abs(deltaX)) {
+    return;
+  }
+
+  scrollToSnapByDirection(deltaY > 0 ? 1 : -1);
+});
+
+document.addEventListener("keydown", (event) => {
+  const target = event.target;
+  const isEditable =
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target?.isContentEditable;
+
+  if (isEditable || event.altKey || event.ctrlKey || event.metaKey) {
+    return;
+  }
+
+  const goesDown =
+    event.key === "ArrowDown" ||
+    event.key === "PageDown" ||
+    (event.key === " " && !event.shiftKey);
+  const goesUp =
+    event.key === "ArrowUp" ||
+    event.key === "PageUp" ||
+    (event.key === " " && event.shiftKey);
+
+  if (goesDown || goesUp) {
+    event.preventDefault();
+    scrollToSnapByDirection(goesDown ? 1 : -1);
+    return;
+  }
+
+  if (event.key === "Home") {
+    event.preventDefault();
+    scrollToTarget(scrollRoot);
+    return;
+  }
+
+  if (event.key === "End" && snapPanels.length > 0) {
+    event.preventDefault();
+    scrollToTarget(snapPanels[snapPanels.length - 1]);
+  }
+});
 
 let lastTopRequest = 0;
 
