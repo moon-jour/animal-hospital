@@ -192,3 +192,68 @@ test("trackpad inertia does not skip past the next snap panel", async ({ page })
     expect(snapResult.finalTop).toBe((snapResult.startIndex + 1) * result.panelHeight);
   }
 });
+
+test("wheel snap accepts another deliberate scroll shortly after settling", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const sendWheel = () => {
+      scrollRoot.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY: 640,
+        }),
+      );
+    };
+
+    scrollRoot.scrollTo({ top: 0, behavior: "auto" });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    sendWheel();
+    await wait(1140);
+    const firstIndex = Math.round(scrollRoot.scrollTop / panelHeight);
+
+    sendWheel();
+    await wait(1140);
+
+    return {
+      finalIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+      firstIndex,
+    };
+  });
+
+  expect(result.firstIndex).toBe(1);
+  expect(result.finalIndex).toBe(2);
+});
+
+test("hero carousel advances, loops, jumps, and pauses inside the first snap panel", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const activeHeroSlideIndex = () =>
+    page.evaluate(() =>
+      Array.from(document.querySelectorAll("[data-hero-slide]")).findIndex((slide) =>
+        slide.classList.contains("is-active"),
+      ),
+    );
+
+  await expect.poll(activeHeroSlideIndex).toBe(0);
+  await expect.poll(activeHeroSlideIndex, { timeout: 3200 }).toBe(1);
+  await expect.poll(activeHeroSlideIndex, { timeout: 3200 }).toBe(2);
+  await expect.poll(activeHeroSlideIndex, { timeout: 3200 }).toBe(0);
+
+  await page.getByRole("button", { name: "3번째 메인 화면으로 이동" }).click();
+  await expect.poll(activeHeroSlideIndex).toBe(2);
+
+  const pauseButton = page.getByRole("button", { name: "메인 슬라이드 일시정지" });
+  await pauseButton.click();
+  await expect(page.getByRole("button", { name: "메인 슬라이드 재생" })).toBeVisible();
+
+  await page.waitForTimeout(2300);
+  await expect.poll(activeHeroSlideIndex).toBe(2);
+});

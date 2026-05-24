@@ -36,16 +36,46 @@ document.querySelector("#app").innerHTML = `
 
   <main id="top" class="snap-root" style="--reception-image: url('${receptionImageUrl}')">
     <section class="hero snap-panel reveal-section is-visible" aria-label="병원 메인 이미지" data-reveal-section>
-      <div class="hero__content">
-        <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
-        <h1>${hospitalDisplayName}</h1>
-        <p class="hero__lead">
-          차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
-        </p>
-        <div class="hero__actions" aria-label="주요 행동">
-          <a class="button button--primary" href="#hours">진료시간 보기</a>
-          <a class="button button--ghost" href="#doctors">원장 소개</a>
-        </div>
+      <div class="hero-slider" aria-live="polite">
+        <article class="hero-slide is-active" data-hero-slide>
+          <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
+          <h1>${hospitalDisplayName}</h1>
+          <p class="hero__lead">
+            차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
+          </p>
+          <div class="hero__actions" aria-label="주요 행동">
+            <a class="button button--primary" href="#hours">진료시간 보기</a>
+            <a class="button button--ghost" href="#doctors">원장 소개</a>
+          </div>
+        </article>
+        <article class="hero-slide" data-hero-slide aria-hidden="true">
+          <p class="eyebrow">EMERGENCY CARE</p>
+          <h1>밤과 휴일에도 이어지는 진료</h1>
+          <p class="hero__lead">
+            갑작스러운 증상과 사고에도 차분하게 대응할 수 있도록 24시간 진료 흐름을 갖추었습니다.
+          </p>
+          <div class="hero__actions" aria-label="주요 행동">
+            <a class="button button--primary" href="#contact">전화 문의</a>
+            <a class="button button--ghost" href="#hours">진료 안내</a>
+          </div>
+        </article>
+        <article class="hero-slide" data-hero-slide aria-hidden="true">
+          <p class="eyebrow">VETERINARY TEAM</p>
+          <h1>두 대표원장이 직접 살피는 진료</h1>
+          <p class="hero__lead">
+            검사부터 치료 선택지, 회복 관리까지 보호자가 이해할 수 있는 언어로 분명하게 설명합니다.
+          </p>
+          <div class="hero__actions" aria-label="주요 행동">
+            <a class="button button--primary" href="#doctors">의료진 보기</a>
+            <a class="button button--ghost" href="#space">공간 보기</a>
+          </div>
+        </article>
+      </div>
+      <div class="hero-slide-controls" aria-label="메인 슬라이드 제어">
+        <button class="hero-slide-toggle" type="button" aria-pressed="false" data-hero-slide-toggle>
+          <span aria-hidden="true">||</span>
+        </button>
+        <div class="hero-slide-dots" aria-label="메인 화면 단계 이동" data-hero-slide-dots></div>
       </div>
     </section>
 
@@ -263,13 +293,15 @@ const snapPanels = Array.from(document.querySelectorAll(".snap-panel"));
 const SNAP_SCROLL_DURATION = 940;
 const WHEEL_DELTA_THRESHOLD = 44;
 const TOUCH_DELTA_THRESHOLD = 48;
-const WHEEL_GESTURE_QUIET_MS = 420;
+const WHEEL_EVENT_GAP_MS = 180;
+const WHEEL_TAIL_SUPPRESS_MS = 180;
+const WHEEL_REENGAGE_DELTA = 300;
 
 let scrollAnimationFrame = 0;
 let wheelDeltaAccumulator = 0;
 let lastWheelAt = 0;
-let wheelGestureConsumed = false;
-let wheelGestureResetTimer = 0;
+let lastSnapDirection = 0;
+let wheelTailSuppressUntil = 0;
 let touchStartX = 0;
 let touchStartY = 0;
 let touchTracking = false;
@@ -289,16 +321,6 @@ const stopScrollAnimation = () => {
   }
 
   scrollRoot?.classList.remove("is-controlled-scroll");
-};
-
-const resetWheelGesture = () => {
-  wheelGestureConsumed = false;
-  wheelDeltaAccumulator = 0;
-};
-
-const scheduleWheelGestureReset = () => {
-  window.clearTimeout(wheelGestureResetTimer);
-  wheelGestureResetTimer = window.setTimeout(resetWheelGesture, WHEEL_GESTURE_QUIET_MS);
 };
 
 const getTargetTop = (target) => {
@@ -371,6 +393,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
     scrollRoot.scrollTop = nextTop;
     scrollRoot.classList.remove("is-controlled-scroll");
     scrollAnimationFrame = 0;
+    wheelTailSuppressUntil = performance.now() + WHEEL_TAIL_SUPPRESS_MS;
     updateScrollTopButton();
   };
 
@@ -379,6 +402,14 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
 
 const scrollToTarget = (target, behavior = "smooth") => {
   scrollToTopPosition(getTargetTop(target), behavior);
+};
+
+const scrollToPanelIndex = (index, behavior = "smooth") => {
+  const panel = snapPanels[clamp(index, 0, snapPanels.length - 1)];
+
+  if (panel) {
+    scrollToTarget(panel, behavior);
+  }
 };
 
 const getNextSnapIndex = (direction) => {
@@ -397,11 +428,7 @@ const getNextSnapIndex = (direction) => {
 };
 
 const scrollToSnapByDirection = (direction) => {
-  const panel = snapPanels[getNextSnapIndex(direction)];
-
-  if (panel) {
-    scrollToTarget(panel);
-  }
+  scrollToPanelIndex(getNextSnapIndex(direction));
 };
 
 const updateScrollTopButton = () => {
@@ -425,14 +452,23 @@ scrollRoot?.addEventListener(
     event.preventDefault();
     const now = performance.now();
 
-    if (now - lastWheelAt > 220) {
+    if (now - lastWheelAt > WHEEL_EVENT_GAP_MS) {
       wheelDeltaAccumulator = 0;
     }
 
     lastWheelAt = now;
-    scheduleWheelGestureReset();
 
-    if (scrollAnimationFrame || wheelGestureConsumed) {
+    if (scrollAnimationFrame) {
+      return;
+    }
+
+    const direction = event.deltaY > 0 ? 1 : -1;
+    const isLikelyInertiaTail =
+      now < wheelTailSuppressUntil &&
+      direction === lastSnapDirection &&
+      Math.abs(event.deltaY) < WHEEL_REENGAGE_DELTA;
+
+    if (isLikelyInertiaTail) {
       return;
     }
 
@@ -442,10 +478,10 @@ scrollRoot?.addEventListener(
       return;
     }
 
-    const direction = wheelDeltaAccumulator > 0 ? 1 : -1;
+    const snapDirection = wheelDeltaAccumulator > 0 ? 1 : -1;
     wheelDeltaAccumulator = 0;
-    wheelGestureConsumed = true;
-    scrollToSnapByDirection(direction);
+    lastSnapDirection = snapDirection;
+    scrollToSnapByDirection(snapDirection);
   },
   { passive: false },
 );
@@ -634,6 +670,114 @@ if (initialTarget && initialTarget !== scrollRoot) {
 }
 
 const hero = document.querySelector(".hero");
+const heroSlides = Array.from(document.querySelectorAll("[data-hero-slide]"));
+const heroSlideDots = document.querySelector("[data-hero-slide-dots]");
+const heroSlideToggle = document.querySelector("[data-hero-slide-toggle]");
+const HERO_SLIDE_INTERVAL = 2000;
+let activeHeroSlide = 0;
+let heroSlideTimer = 0;
+let isHeroSlidePaused = reducedMotionQuery.matches;
+
+if (heroSlideDots) {
+  heroSlideDots.innerHTML = heroSlides
+    .map(
+      (_slide, index) => `
+        <button class="hero-slide-dot" type="button" aria-label="${index + 1}번째 메인 화면으로 이동" data-hero-slide-index="${index}"></button>
+      `,
+    )
+    .join("");
+}
+
+const heroSlideDotButtons = Array.from(document.querySelectorAll("[data-hero-slide-index]"));
+
+const renderHeroSlides = () => {
+  for (const [index, slide] of heroSlides.entries()) {
+    const isActive = index === activeHeroSlide;
+
+    slide.classList.toggle("is-active", isActive);
+    slide.setAttribute("aria-hidden", String(!isActive));
+  }
+
+  for (const button of heroSlideDotButtons) {
+    const isActive = Number(button.dataset.heroSlideIndex) === activeHeroSlide;
+
+    button.classList.toggle("is-active", isActive);
+    button.toggleAttribute("aria-current", isActive);
+  }
+
+  if (heroSlideToggle) {
+    heroSlideToggle.setAttribute("aria-pressed", String(isHeroSlidePaused));
+    heroSlideToggle.setAttribute("aria-label", isHeroSlidePaused ? "메인 슬라이드 재생" : "메인 슬라이드 일시정지");
+    heroSlideToggle.querySelector("span").textContent = isHeroSlidePaused ? ">" : "||";
+  }
+};
+
+const showHeroSlide = (index) => {
+  activeHeroSlide = clamp(index, 0, heroSlides.length - 1);
+  renderHeroSlides();
+};
+
+const clearHeroSlideTimer = () => {
+  window.clearTimeout(heroSlideTimer);
+  heroSlideTimer = 0;
+};
+
+const scheduleHeroSlide = () => {
+  clearHeroSlideTimer();
+
+  if (isHeroSlidePaused || heroSlides.length < 2) {
+    return;
+  }
+
+  heroSlideTimer = window.setTimeout(() => {
+    if (document.visibilityState === "visible") {
+      showHeroSlide((activeHeroSlide + 1) % heroSlides.length);
+    }
+
+    scheduleHeroSlide();
+  }, HERO_SLIDE_INTERVAL);
+};
+
+const pauseHeroSlides = () => {
+  isHeroSlidePaused = true;
+  clearHeroSlideTimer();
+  renderHeroSlides();
+};
+
+const resumeHeroSlides = () => {
+  isHeroSlidePaused = false;
+  renderHeroSlides();
+  scheduleHeroSlide();
+};
+
+for (const button of heroSlideDotButtons) {
+  button.addEventListener("click", () => {
+    showHeroSlide(Number(button.dataset.heroSlideIndex));
+    scheduleHeroSlide();
+  });
+}
+
+heroSlideToggle?.addEventListener("click", () => {
+  if (isHeroSlidePaused) {
+    resumeHeroSlides();
+    return;
+  }
+
+  pauseHeroSlides();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    scheduleHeroSlide();
+    return;
+  }
+
+  clearHeroSlideTimer();
+});
+
+renderHeroSlides();
+scheduleHeroSlide();
+
 const canAnimateHero =
   window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
   !reducedMotionQuery.matches;
