@@ -254,7 +254,7 @@ img {
 .hero {
   --hero-shift-x: 0px;
   --hero-shift-y: 0px;
-  --hero-bg-x: 50%;
+  --hero-bg-x: 42%;
   --hero-bg-y: 50%;
   position: relative;
   z-index: 0;
@@ -293,7 +293,7 @@ img {
 .hero::after {
   inset: 0;
   z-index: 0;
-  background: rgba(4, 50, 75, 0.7);
+  background: rgba(4, 50, 75, 0.62);
   box-shadow: inset 0 -1px rgba(255, 255, 255, 0.18);
 }
 
@@ -301,6 +301,7 @@ img {
   position: relative;
   z-index: 1;
   width: min(760px, 100%);
+  margin-top: clamp(28px, 6vh, 56px);
   margin-right: auto;
 }
 
@@ -308,15 +309,15 @@ img {
 .hero h1,
 .hero__actions {
   opacity: 0;
-  animation: heroTextFadeIn 1050ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  animation: heroTextFadeIn 1800ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 .hero h1 {
-  animation-delay: 180ms;
+  animation-delay: 360ms;
 }
 
 .hero__actions {
-  animation-delay: 380ms;
+  animation-delay: 720ms;
 }
 
 .eyebrow,
@@ -1251,7 +1252,7 @@ img {
   }
 
   .hero {
-    --hero-bg-x: 62%;
+    --hero-bg-x: 50%;
   }
 
   .hero h1 {
@@ -1322,11 +1323,11 @@ img {
   }
 
   .hero {
-    --hero-bg-x: 58%;
+    --hero-bg-x: 48%;
   }
 
   .hero::after {
-    background: rgba(4, 50, 75, 0.68);
+    background: rgba(4, 50, 75, 0.6);
   }
 
   .hero h1 {

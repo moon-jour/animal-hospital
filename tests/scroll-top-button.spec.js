@@ -42,18 +42,25 @@ test("hero uses the care image and fades the entry text without lead copy", asyn
   const heroDetails = await page.evaluate(() => {
     const main = document.querySelector("main#top");
     const lead = document.querySelector(".hero__lead");
+    const hero = document.querySelector(".hero");
     const eyebrow = document.querySelector(".hero .eyebrow");
     const title = document.querySelector(".hero h1");
     const actions = document.querySelector(".hero__actions");
+    const content = document.querySelector(".hero__content");
 
     return {
       actionsAnimation: getComputedStyle(actions).animationName,
       actionsDelay: getComputedStyle(actions).animationDelay,
+      actionsDuration: getComputedStyle(actions).animationDuration,
+      backgroundPositionX: getComputedStyle(hero).getPropertyValue("--hero-bg-x").trim(),
+      contentMarginTop: getComputedStyle(content).marginTop,
       hasLead: Boolean(lead),
       heroStyle: main.getAttribute("style"),
       eyebrowAnimation: getComputedStyle(eyebrow).animationName,
+      overlayBackground: getComputedStyle(hero, "::after").backgroundColor,
       titleAnimation: getComputedStyle(title).animationName,
       titleDelay: getComputedStyle(title).animationDelay,
+      titleDuration: getComputedStyle(title).animationDuration,
     };
   });
 
@@ -62,8 +69,13 @@ test("hero uses the care image and fades the entry text without lead copy", asyn
   expect(heroDetails.eyebrowAnimation).toBe("heroTextFadeIn");
   expect(heroDetails.titleAnimation).toBe("heroTextFadeIn");
   expect(heroDetails.actionsAnimation).toBe("heroTextFadeIn");
-  expect(heroDetails.titleDelay).toContain("0.18s");
-  expect(heroDetails.actionsDelay).toContain("0.38s");
+  expect(heroDetails.titleDuration).toContain("1.8s");
+  expect(heroDetails.actionsDuration).toContain("1.8s");
+  expect(heroDetails.titleDelay).toContain("0.36s");
+  expect(heroDetails.actionsDelay).toContain("0.72s");
+  expect(heroDetails.backgroundPositionX).toBe("42%");
+  expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.62)");
+  expect(Number.parseFloat(heroDetails.contentMarginTop)).toBeGreaterThan(24);
 });
 
 test("snap panels fill the visible area below the header", async ({ page }) => {
