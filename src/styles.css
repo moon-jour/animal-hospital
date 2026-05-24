@@ -249,7 +249,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(54px, 8vh, 86px) 48px clamp(110px, 15vh, 142px);
+  padding: clamp(54px, 8vh, 86px) 48px;
   overflow: hidden;
   color: var(--linen);
   background:
@@ -370,52 +370,6 @@ img {
 
 .button--ghost:hover {
   border-color: var(--linen);
-}
-
-.hero__notice {
-  position: absolute;
-  right: auto;
-  bottom: clamp(28px, 5vh, 44px);
-  left: 50%;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  width: min(1180px, calc(100% - 96px));
-  margin: 0 auto;
-  padding: 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
-  color: var(--linen);
-  background: rgba(1, 62, 106, 0.82);
-  transform: translateX(-50%);
-  backdrop-filter: blur(14px);
-}
-
-.hero__notice p,
-.hero__notice span,
-.hero__notice strong {
-  display: block;
-  margin: 0;
-}
-
-.hero__notice span {
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 0.86rem;
-}
-
-.hero__notice strong {
-  margin-top: 4px;
-  font-size: 1.14rem;
-}
-
-.hero__notice a {
-  flex: 0 0 auto;
-  padding: 12px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  border-radius: 8px;
-  font-weight: 800;
 }
 
 .section {
@@ -964,7 +918,7 @@ img {
   }
 
   .hero {
-    padding: 44px 18px 112px;
+    padding: 44px 18px;
   }
 
   .hero {
@@ -986,21 +940,6 @@ img {
 
   .button {
     width: 100%;
-  }
-
-  .hero__notice {
-    bottom: 18px;
-    display: grid;
-    width: calc(100% - 36px);
-    padding: 16px;
-  }
-
-  .hero__notice strong {
-    font-size: 0.98rem;
-  }
-
-  .hero__notice a {
-    text-align: center;
   }
 
   .feature-grid,

@@ -47,13 +47,6 @@ document.querySelector("#app").innerHTML = `
           <a class="button button--ghost" href="#doctors">원장 소개</a>
         </div>
       </div>
-      <div class="hero__notice" aria-label="빠른 안내">
-        <p>
-          <span>응급 내원 전 전화 문의</span>
-          <strong>오전 10:00 - 오후 10:00, 야간 10:00 - 오전 10:00</strong>
-        </p>
-        <a href="#contact">전화 문의 ${hospital.phone}</a>
-      </div>
     </section>
 
     <section class="section intro snap-panel reveal-section" id="about" data-reveal-section>
@@ -270,10 +263,13 @@ const snapPanels = Array.from(document.querySelectorAll(".snap-panel"));
 const SNAP_SCROLL_DURATION = 940;
 const WHEEL_DELTA_THRESHOLD = 44;
 const TOUCH_DELTA_THRESHOLD = 48;
+const WHEEL_GESTURE_QUIET_MS = 420;
 
 let scrollAnimationFrame = 0;
 let wheelDeltaAccumulator = 0;
 let lastWheelAt = 0;
+let wheelGestureConsumed = false;
+let wheelGestureResetTimer = 0;
 let touchStartX = 0;
 let touchStartY = 0;
 let touchTracking = false;
@@ -293,6 +289,16 @@ const stopScrollAnimation = () => {
   }
 
   scrollRoot?.classList.remove("is-controlled-scroll");
+};
+
+const resetWheelGesture = () => {
+  wheelGestureConsumed = false;
+  wheelDeltaAccumulator = 0;
+};
+
+const scheduleWheelGestureReset = () => {
+  window.clearTimeout(wheelGestureResetTimer);
+  wheelGestureResetTimer = window.setTimeout(resetWheelGesture, WHEEL_GESTURE_QUIET_MS);
 };
 
 const getTargetTop = (target) => {
@@ -417,11 +423,6 @@ scrollRoot?.addEventListener(
     }
 
     event.preventDefault();
-
-    if (scrollAnimationFrame) {
-      return;
-    }
-
     const now = performance.now();
 
     if (now - lastWheelAt > 220) {
@@ -429,6 +430,12 @@ scrollRoot?.addEventListener(
     }
 
     lastWheelAt = now;
+    scheduleWheelGestureReset();
+
+    if (scrollAnimationFrame || wheelGestureConsumed) {
+      return;
+    }
+
     wheelDeltaAccumulator += event.deltaY;
 
     if (Math.abs(wheelDeltaAccumulator) < WHEEL_DELTA_THRESHOLD) {
@@ -437,6 +444,7 @@ scrollRoot?.addEventListener(
 
     const direction = wheelDeltaAccumulator > 0 ? 1 : -1;
     wheelDeltaAccumulator = 0;
+    wheelGestureConsumed = true;
     scrollToSnapByDirection(direction);
   },
   { passive: false },
@@ -494,6 +502,10 @@ scrollRoot?.addEventListener("touchend", (event) => {
     return;
   }
 
+  if (scrollAnimationFrame) {
+    return;
+  }
+
   scrollToSnapByDirection(deltaY > 0 ? 1 : -1);
 });
 
@@ -520,6 +532,10 @@ document.addEventListener("keydown", (event) => {
 
   if (goesDown || goesUp) {
     event.preventDefault();
+    if (scrollAnimationFrame) {
+      return;
+    }
+
     scrollToSnapByDirection(goesDown ? 1 : -1);
     return;
   }

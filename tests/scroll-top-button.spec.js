@@ -139,3 +139,56 @@ test("wheel snap scroll is controlled and does not overshoot the next panel", as
   expect(result.maxTop).toBeLessThanOrEqual(result.panelHeight + 2);
   expect(result.finalTop).toBe(result.panelHeight);
 });
+
+test("trackpad inertia does not skip past the next snap panel", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const sendWheel = (deltaY) => {
+      scrollRoot.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY,
+        }),
+      );
+    };
+    const checkFromPanel = async (startIndex) => {
+      scrollRoot.scrollTo({ top: startIndex * panelHeight, behavior: "auto" });
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      sendWheel(640);
+
+      for (const delay of [170, 170, 170, 170, 170, 170]) {
+        await wait(delay);
+        sendWheel(120);
+      }
+
+      await wait(760);
+
+      return {
+        finalIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+        finalTop: Math.round(scrollRoot.scrollTop),
+        startIndex,
+      };
+    };
+
+    return {
+      panelHeight: Math.round(panelHeight),
+      results: [
+        await checkFromPanel(0),
+        await checkFromPanel(3),
+        await checkFromPanel(4),
+      ],
+    };
+  });
+
+  for (const snapResult of result.results) {
+    expect(snapResult.finalIndex).toBe(snapResult.startIndex + 1);
+    expect(snapResult.finalTop).toBe((snapResult.startIndex + 1) * result.panelHeight);
+  }
+});
