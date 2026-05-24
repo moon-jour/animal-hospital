@@ -106,6 +106,18 @@ img {
   }
 }
 
+@keyframes heroTextFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .site-header {
   position: relative;
   top: 0;
@@ -292,6 +304,21 @@ img {
   margin-right: auto;
 }
 
+.hero .eyebrow,
+.hero h1,
+.hero__actions {
+  opacity: 0;
+  animation: heroTextFadeIn 1050ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.hero h1 {
+  animation-delay: 180ms;
+}
+
+.hero__actions {
+  animation-delay: 380ms;
+}
+
 .eyebrow,
 .section-kicker,
 .role {
@@ -339,7 +366,17 @@ img {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 34px;
+  margin-top: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .eyebrow,
+  .hero h1,
+  .hero__actions {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 .button {
@@ -931,15 +968,20 @@ img {
   position: absolute;
   inset: 0;
   display: grid;
+  width: 100%;
+  height: 100%;
   place-items: center;
   margin: 0;
   background: #000000;
 }
 
 .facility-photo img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 100vw;
+  max-height: var(--snap-height);
   object-fit: contain;
+  object-position: center;
 }
 
 .facility-caption {

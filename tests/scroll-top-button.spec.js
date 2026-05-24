@@ -35,6 +35,37 @@ test("floating top button is present and returns mobile users to the top", async
   await verifyScrollTopButton(page, { width: 390, height: 844 });
 });
 
+test("hero uses the care image and fades the entry text without lead copy", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const heroDetails = await page.evaluate(() => {
+    const main = document.querySelector("main#top");
+    const lead = document.querySelector(".hero__lead");
+    const eyebrow = document.querySelector(".hero .eyebrow");
+    const title = document.querySelector(".hero h1");
+    const actions = document.querySelector(".hero__actions");
+
+    return {
+      actionsAnimation: getComputedStyle(actions).animationName,
+      actionsDelay: getComputedStyle(actions).animationDelay,
+      hasLead: Boolean(lead),
+      heroStyle: main.getAttribute("style"),
+      eyebrowAnimation: getComputedStyle(eyebrow).animationName,
+      titleAnimation: getComputedStyle(title).animationName,
+      titleDelay: getComputedStyle(title).animationDelay,
+    };
+  });
+
+  expect(heroDetails.heroStyle).toContain("main-care-hero.jpg");
+  expect(heroDetails.hasLead).toBe(false);
+  expect(heroDetails.eyebrowAnimation).toBe("heroTextFadeIn");
+  expect(heroDetails.titleAnimation).toBe("heroTextFadeIn");
+  expect(heroDetails.actionsAnimation).toBe("heroTextFadeIn");
+  expect(heroDetails.titleDelay).toContain("0.18s");
+  expect(heroDetails.actionsDelay).toContain("0.38s");
+});
+
 test("snap panels fill the visible area below the header", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/");
@@ -302,7 +333,7 @@ test("fade carousels restart from the first slide when their snap panel is enter
   await expect.poll(() => activeSlideIndex("[data-hours-slide]")).toBe(2);
 
   await scrollRoot.evaluate((element) => {
-    element.scrollTo({ top: element.clientHeight * 2, behavior: "auto" });
+    element.scrollTo({ top: element.clientHeight * 3, behavior: "auto" });
   });
   await expect.poll(() => activeSlideIndex("[data-hours-slide]")).toBe(0);
 
@@ -312,7 +343,7 @@ test("fade carousels restart from the first slide when their snap panel is enter
   await expect.poll(() => activeSlideIndex("[data-facility-slide]")).toBe(4);
 
   await scrollRoot.evaluate((element) => {
-    element.scrollTo({ top: element.clientHeight * 5, behavior: "auto" });
+    element.scrollTo({ top: element.clientHeight * 2, behavior: "auto" });
   });
   await expect.poll(() => activeSlideIndex("[data-facility-slide]")).toBe(0);
 });
@@ -392,7 +423,7 @@ test("about carousel advances, loops, jumps, and pauses inside the second snap p
   await expect.poll(activeAboutSlideIndex).toBe(2);
 });
 
-test("hours carousel fades, jumps, and pauses inside the third snap panel", async ({ page }) => {
+test("hours carousel fades, jumps, and pauses inside the fourth snap panel", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
 
@@ -405,7 +436,7 @@ test("hours carousel fades, jumps, and pauses inside the third snap panel", asyn
     );
 
   await scrollRoot.evaluate((element) => {
-    element.scrollTo({ top: element.clientHeight * 2, behavior: "auto" });
+    element.scrollTo({ top: element.clientHeight * 3, behavior: "auto" });
   });
   await expect.poll(activeHoursSlideIndex).toBe(0);
 
@@ -453,7 +484,7 @@ test("hours carousel fades, jumps, and pauses inside the third snap panel", asyn
   await expect.poll(activeHoursSlideIndex).toBe(2);
 });
 
-test("facility carousel shows uploaded photos with black contain background", async ({ page }) => {
+test("facility carousel shows uploaded photos in the third snap panel with black contain background", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
 
@@ -466,22 +497,33 @@ test("facility carousel shows uploaded photos with black contain background", as
     );
 
   await scrollRoot.evaluate((element) => {
-    element.scrollTo({ top: element.clientHeight * 5, behavior: "auto" });
+    element.scrollTo({ top: element.clientHeight * 2, behavior: "auto" });
   });
   await expect.poll(activeFacilitySlideIndex).toBe(0);
 
   const facilityStyles = await page.evaluate(() => {
     const controls = document.querySelector(".facility-slide-controls");
+    const section = document.querySelector("#space");
     const photo = document.querySelector(".facility-slide.is-active .facility-photo");
     const image = document.querySelector(".facility-slide.is-active .facility-photo img");
     const dots = Array.from(document.querySelectorAll(".facility-slide-dot"));
+    const imageRect = image.getBoundingClientRect();
+    const photoRect = photo.getBoundingClientRect();
+    const sectionIndex = Array.from(document.querySelectorAll(".snap-panel")).indexOf(section);
 
     return {
       controlsBackground: getComputedStyle(controls).backgroundColor,
       dotCount: dots.length,
+      imageHeight: imageRect.height,
       imageFit: getComputedStyle(image).objectFit,
       imageSrc: image.getAttribute("src"),
+      imageWidth: imageRect.width,
+      naturalHeight: image.naturalHeight,
+      naturalWidth: image.naturalWidth,
       photoBackground: getComputedStyle(photo).backgroundColor,
+      photoHeight: photoRect.height,
+      photoWidth: photoRect.width,
+      sectionIndex,
     };
   });
 
@@ -489,7 +531,16 @@ test("facility carousel shows uploaded photos with black contain background", as
   expect(facilityStyles.dotCount).toBe(10);
   expect(facilityStyles.imageFit).toBe("contain");
   expect(facilityStyles.imageSrc).toContain("facility-01.jpg");
+  expect(facilityStyles.sectionIndex).toBe(2);
   expect(facilityStyles.photoBackground).toBe("rgb(0, 0, 0)");
+  expect(facilityStyles.imageWidth / facilityStyles.imageHeight).toBeCloseTo(
+    facilityStyles.naturalWidth / facilityStyles.naturalHeight,
+    2,
+  );
+  expect(facilityStyles.imageWidth).toBeLessThanOrEqual(facilityStyles.naturalWidth + 1);
+  expect(facilityStyles.imageHeight).toBeLessThanOrEqual(facilityStyles.naturalHeight + 1);
+  expect(facilityStyles.imageWidth).toBeLessThanOrEqual(facilityStyles.photoWidth);
+  expect(facilityStyles.imageHeight).toBeLessThanOrEqual(facilityStyles.photoHeight);
 
   await expect.poll(activeFacilitySlideIndex, { timeout: 5200 }).toBe(1);
 

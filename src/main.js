@@ -9,7 +9,7 @@ const hospital = {
 
 const hospitalDisplayName = hospital.name.replace("동물", "<wbr />동물");
 const imageUrl = (filename) => `${import.meta.env.BASE_URL}images/${filename}`;
-const receptionImageUrl = imageUrl("main-reception.jpg");
+const heroImageUrl = imageUrl("main-care-hero.jpg");
 const logoImageUrl = imageUrl("hospital-symbol.jpeg");
 const hongDoctorImageUrl = imageUrl("doctor-hong-card.png");
 const kimDoctorImageUrl = imageUrl("doctor-kim-card.png");
@@ -96,21 +96,18 @@ document.querySelector("#app").innerHTML = `
     </a>
     <nav class="nav-links" aria-label="주요 섹션">
       <a href="#about"><span>병원소개</span></a>
-      <a href="#doctors"><span>의료진</span></a>
-      <a href="#hours"><span>진료안내</span></a>
       <a href="#space"><span>시설소개</span></a>
+      <a href="#hours"><span>진료안내</span></a>
+      <a href="#doctors"><span>의료진</span></a>
     </nav>
     <a class="header-cta" href="#contact">문의</a>
   </header>
 
-  <main id="top" class="snap-root" style="--reception-image: url('${receptionImageUrl}')">
+  <main id="top" class="snap-root" style="--reception-image: url('${heroImageUrl}')">
     <section class="hero snap-panel reveal-section is-visible" aria-label="병원 메인 이미지" data-reveal-section>
       <div class="hero__content">
         <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
         <h1>${hospitalDisplayName}</h1>
-        <p class="hero__lead">
-          차분한 공간, 정확한 진료, 다정한 설명으로 반려동물의 하루를 더 안정적으로 돌봅니다.
-        </p>
         <div class="hero__actions" aria-label="주요 행동">
           <a class="button button--primary" href="#hours">진료시간 보기</a>
           <a class="button button--ghost" href="#doctors">원장 소개</a>
@@ -191,6 +188,18 @@ document.querySelector("#app").innerHTML = `
           <span aria-hidden="true">||</span>
         </button>
         <div class="about-slide-dots slide-dots" aria-label="병원 소개 화면 단계 이동" data-about-slide-dots></div>
+      </div>
+    </section>
+
+    <section class="facility-section snap-panel reveal-section" id="space" data-reveal-section>
+      <div class="facility-carousel" aria-live="polite">
+        ${facilitySlideMarkup}
+      </div>
+      <div class="facility-slide-controls slide-controls" aria-label="시설소개 슬라이드 제어">
+        <button class="facility-slide-toggle slide-toggle" type="button" aria-pressed="false" data-facility-slide-toggle>
+          <span aria-hidden="true">||</span>
+        </button>
+        <div class="facility-slide-dots slide-dots" aria-label="시설소개 화면 단계 이동" data-facility-slide-dots></div>
       </div>
     </section>
 
@@ -361,18 +370,6 @@ document.querySelector("#app").innerHTML = `
             <p>야간과 휴일에도 내원이 필요한 상황에 대응할 수 있도록 문을 열어둡니다.</p>
           </div>
         </article>
-      </div>
-    </section>
-
-    <section class="facility-section snap-panel reveal-section" id="space" data-reveal-section>
-      <div class="facility-carousel" aria-live="polite">
-        ${facilitySlideMarkup}
-      </div>
-      <div class="facility-slide-controls slide-controls" aria-label="시설소개 슬라이드 제어">
-        <button class="facility-slide-toggle slide-toggle" type="button" aria-pressed="false" data-facility-slide-toggle>
-          <span aria-hidden="true">||</span>
-        </button>
-        <div class="facility-slide-dots slide-dots" aria-label="시설소개 화면 단계 이동" data-facility-slide-dots></div>
       </div>
     </section>
 
