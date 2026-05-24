@@ -45,7 +45,7 @@ document.querySelector("#app").innerHTML = `
           </p>
           <div class="hero__actions" aria-label="주요 행동">
             <a class="button button--primary" href="#hours">진료시간 보기</a>
-            <a class="button button--ghost" href="#doctors">의료진 소개</a>
+            <a class="button button--ghost" href="#doctors">원장 소개</a>
           </div>
         </div>
       </section>
@@ -63,24 +63,24 @@ document.querySelector("#app").innerHTML = `
       <div class="section-kicker">24H CARE STANDARD</div>
       <div class="split">
         <div>
-          <h2>전문 의료진과 차분한 공간, 필요한 진료를 한 곳에서.</h2>
+          <h2>차분한 공간과 정확한 설명, 필요한 진료를 한 곳에서.</h2>
         </div>
         <div class="copy-stack">
           <p>
-            ${hospital.name}는 365일 24시간 진료하는 동물의료센터입니다. 보호자가 불안한 순간에도
+            ${hospital.name}는 밤과 휴일에도 진료가 이어지는 동물의료센터입니다. 보호자가 불안한 순간에도
             차분하게 이해할 수 있도록 검사와 치료 과정을 명확하게 설명합니다.
           </p>
           <p>
             진료실, 처치실, 입원 공간의 동선을 세심하게 구성해 반려동물의 스트레스를 줄이고
-            의료진이 신속하게 대응할 수 있는 환경을 갖추었습니다.
+            수의사가 신속하게 대응할 수 있는 환경을 갖추었습니다.
           </p>
         </div>
       </div>
       <div class="feature-grid" aria-label="병원 특징">
         <article>
           <span>01</span>
-          <h3>전문 의료진</h3>
-          <p>외과 전문 전공의가 상주하며 응급 상황부터 수술 상담까지 직접 살핍니다.</p>
+          <h3>책임 진료</h3>
+          <p>두 대표원장이 응급 상황부터 수술 상담까지 직접 살핍니다.</p>
         </article>
         <article>
           <span>02</span>
@@ -122,7 +122,7 @@ document.querySelector("#app").innerHTML = `
                 <dd>PM 10:00 - AM 10:00</dd>
               </div>
               <div>
-                <dt>운영</dt>
+                <dt>휴무</dt>
                 <dd>365일 연중무휴</dd>
               </div>
               <div>
@@ -131,15 +131,15 @@ document.querySelector("#app").innerHTML = `
               </div>
             </dl>
           </div>
-          <div class="care-grid" aria-label="진료 운영 안내">
+          <div class="care-grid" aria-label="진료 안내">
             <article>
               <span>24H</span>
               <h3>야간 응급 진료</h3>
-              <p>갑작스러운 증상과 사고에도 내원이 가능하도록 24시간 응급 대응 체계를 운영합니다.</p>
+              <p>갑작스러운 증상과 사고에도 내원이 가능하도록 야간 응급 대응 체계를 갖추었습니다.</p>
             </article>
             <article>
               <span>365</span>
-              <h3>연중무휴 운영</h3>
+              <h3>휴일 진료</h3>
               <p>주말과 공휴일에도 같은 기준으로 진료하며, 야간에는 전화 후 내원하시면 문을 열어드립니다.</p>
             </article>
           </div>
@@ -151,7 +151,7 @@ document.querySelector("#app").innerHTML = `
       <div class="section-heading doctors-heading">
         <div>
           <div class="section-kicker">24H VETERINARY TEAM</div>
-          <h2>대학병원 출신 풀타임 전공의가 24시간 상주합니다.</h2>
+          <h2>대학병원 출신 대표원장이 밤낮으로 진료를 이어갑니다.</h2>
         </div>
         <p>두 대표원장이 응급 진료, 외과 수술, 내과 상담, 회복 관리까지 함께 살핍니다.</p>
       </div>
@@ -163,7 +163,7 @@ document.querySelector("#app").innerHTML = `
           <div>
             <p class="role">CHIEF VETERINARIAN</p>
             <h3>홍정호 대표원장</h3>
-            <strong>외과 전문 전공의</strong>
+            <strong>대학병원 출신 수의사</strong>
             <p>
               응급 진료, 외과 수술, 내과 상담, 회복 관리까지 필요한 진료 전 과정을 차분하게 설명합니다.
               보호자가 이해할 수 있는 언어로 검사와 치료 선택지를 안내합니다.
@@ -177,7 +177,7 @@ document.querySelector("#app").innerHTML = `
           <div>
             <p class="role">CHIEF VETERINARIAN</p>
             <h3>김민연 대표원장</h3>
-            <strong>외과 전문 전공의</strong>
+            <strong>대학병원 출신 수의사</strong>
             <p>
               야간 응급 상황부터 수술 전 평가, 내과적 관리, 회복 계획까지 한 흐름으로 살핍니다.
               반려동물 상태와 보호자 상황에 맞춰 필요한 다음 단계를 명확하게 안내합니다.
@@ -211,7 +211,7 @@ document.querySelector("#app").innerHTML = `
         <article class="specialty-card">
           <span>03</span>
           <div>
-            <h3>내과 특화 진료</h3>
+            <h3>내과 진료</h3>
             <p>심장, 신장, 간담도계 질환처럼 꾸준한 관리가 필요한 내과 질환을 세심하게 봅니다.</p>
           </div>
         </article>
@@ -219,7 +219,7 @@ document.querySelector("#app").innerHTML = `
           <span>04</span>
           <div>
             <h3>24시간 응급 진료</h3>
-            <p>야간과 휴일에도 내원이 필요한 상황에 대응할 수 있도록 365일 진료 체계를 운영합니다.</p>
+            <p>야간과 휴일에도 내원이 필요한 상황에 대응할 수 있도록 문을 열어둡니다.</p>
           </div>
         </article>
       </div>
