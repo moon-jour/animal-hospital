@@ -117,58 +117,103 @@ document.querySelector("#app").innerHTML = `
           </div>
         </article>
       </div>
-      <div class="about-slide-controls" aria-label="병원 소개 슬라이드 제어">
-        <button class="about-slide-toggle" type="button" aria-pressed="false" data-about-slide-toggle>
+      <div class="about-slide-controls slide-controls" aria-label="병원 소개 슬라이드 제어">
+        <button class="about-slide-toggle slide-toggle" type="button" aria-pressed="false" data-about-slide-toggle>
           <span aria-hidden="true">||</span>
         </button>
-        <div class="about-slide-dots" aria-label="병원 소개 화면 단계 이동" data-about-slide-dots></div>
+        <div class="about-slide-dots slide-dots" aria-label="병원 소개 화면 단계 이동" data-about-slide-dots></div>
       </div>
     </section>
 
-    <section class="section section--dark snap-panel reveal-section" id="hours" data-reveal-section>
-      <div class="section-kicker">HOURS</div>
-      <div class="split split--center">
-        <div>
-          <h2>새벽에도, 주말에도 우리 아이 곁을 지킵니다.</h2>
-          <p class="section-lead">
-            365일 연중무휴 24시간 진료 체계로 오전 진료와 야간 응급 진료를 이어갑니다.
-            야간 진료는 전화 주시면 출입문을 열어드립니다.
-          </p>
-        </div>
-        <div class="hours-column">
-          <div class="hours-panel">
-            <dl>
-              <div>
-                <dt>오전 진료</dt>
-                <dd>AM 10:00 - PM 10:00</dd>
-              </div>
-              <div>
-                <dt>야간 진료</dt>
-                <dd>PM 10:00 - AM 10:00</dd>
-              </div>
-              <div>
-                <dt>휴무</dt>
-                <dd>365일 연중무휴</dd>
-              </div>
-              <div>
-                <dt>예약 문의</dt>
-                <dd>${hospital.phone}</dd>
-              </div>
-            </dl>
+    <section class="hours-section snap-panel reveal-section" id="hours" data-reveal-section>
+      <div class="hours-carousel" aria-live="polite">
+        <article class="hours-slide hours-slide--schedule is-active" data-hours-slide>
+          <div class="hours-slide__visual" aria-hidden="true">
+            <span>24H</span>
           </div>
-          <div class="care-grid" aria-label="진료 안내">
-            <article>
-              <span>24H</span>
-              <h3>야간 응급 진료</h3>
-              <p>갑작스러운 증상과 사고에도 내원이 가능하도록 야간 응급 대응 체계를 갖추었습니다.</p>
-            </article>
-            <article>
-              <span>365</span>
-              <h3>휴일 진료</h3>
-              <p>주말과 공휴일에도 같은 기준으로 진료하며, 야간에는 전화 후 내원하시면 문을 열어드립니다.</p>
-            </article>
+          <div class="hours-slide__content">
+            <div class="section-kicker">HOURS</div>
+            <div class="split split--center">
+              <div>
+                <h2>새벽에도, 주말에도 우리 아이 곁을 지킵니다.</h2>
+                <p class="section-lead">
+                  365일 연중무휴 24시간 진료 체계로 오전 진료와 야간 응급 진료를 이어갑니다.
+                  야간 진료는 전화 주시면 출입문을 열어드립니다.
+                </p>
+              </div>
+              <div class="hours-column">
+                <div class="hours-panel">
+                  <dl>
+                    <div>
+                      <dt>오전 진료</dt>
+                      <dd>AM 10:00 - PM 10:00</dd>
+                    </div>
+                    <div>
+                      <dt>야간 진료</dt>
+                      <dd>PM 10:00 - AM 10:00</dd>
+                    </div>
+                    <div>
+                      <dt>휴무</dt>
+                      <dd>365일 연중무휴</dd>
+                    </div>
+                    <div>
+                      <dt>예약 문의</dt>
+                      <dd>${hospital.phone}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </article>
+        <article class="hours-slide hours-slide--night" data-hours-slide aria-hidden="true">
+          <div class="hours-slide__visual" aria-hidden="true">
+            <span>ER</span>
+          </div>
+          <div class="hours-slide__content hours-slide__content--compact">
+            <div class="section-kicker">NIGHT CARE</div>
+            <h2>갑작스러운 증상에도 문을 열어두겠습니다.</h2>
+            <p>
+              구토, 호흡 이상, 보행 이상, 외상처럼 빠른 판단이 필요한 상황에서도 야간 응급 진료가
+              이어질 수 있도록 준비합니다.
+            </p>
+            <div class="care-grid" aria-label="야간 진료 안내">
+              <article>
+                <span>01</span>
+                <h3>응급 내원 대응</h3>
+                <p>상태를 먼저 확인하고 필요한 검사와 처치를 순서대로 안내합니다.</p>
+              </article>
+              <article>
+                <span>02</span>
+                <h3>입원 관찰</h3>
+                <p>회복 경과를 차분하게 확인하며 보호자에게 다음 단계를 설명합니다.</p>
+              </article>
+            </div>
+          </div>
+        </article>
+        <article class="hours-slide hours-slide--visit" data-hours-slide aria-hidden="true">
+          <div class="hours-slide__visual" aria-hidden="true">
+            <span>CALL</span>
+          </div>
+          <div class="hours-slide__content hours-slide__content--compact">
+            <div class="section-kicker">VISIT GUIDE</div>
+            <h2>내원 전 문의부터 진료 후 안내까지 한 흐름으로 돕습니다.</h2>
+            <p>
+              전화로 증상과 내원 가능 시간을 확인한 뒤, 필요한 준비 사항과 진료 후 관찰 포인트를
+              보호자가 이해하기 쉽게 정리해드립니다.
+            </p>
+            <div class="hours-contact-card">
+              <span>예약 및 야간 문의</span>
+              <a href="tel:${hospital.phone.replaceAll("-", "")}">${hospital.phone}</a>
+            </div>
+          </div>
+        </article>
+      </div>
+      <div class="hours-slide-controls slide-controls" aria-label="진료안내 슬라이드 제어">
+        <button class="hours-slide-toggle slide-toggle" type="button" aria-pressed="false" data-hours-slide-toggle>
+          <span aria-hidden="true">||</span>
+        </button>
+        <div class="hours-slide-dots slide-dots" aria-label="진료안내 화면 단계 이동" data-hours-slide-dots></div>
       </div>
     </section>
 
@@ -678,110 +723,154 @@ const hero = document.querySelector(".hero");
 const aboutSlides = Array.from(document.querySelectorAll("[data-about-slide]"));
 const aboutSlideDots = document.querySelector("[data-about-slide-dots]");
 const aboutSlideToggle = document.querySelector("[data-about-slide-toggle]");
+const hoursSlides = Array.from(document.querySelectorAll("[data-hours-slide]"));
+const hoursSlideDots = document.querySelector("[data-hours-slide-dots]");
+const hoursSlideToggle = document.querySelector("[data-hours-slide-toggle]");
 const ABOUT_SLIDE_INTERVAL = 4000;
-let activeAboutSlide = 0;
-let aboutSlideTimer = 0;
-let isAboutSlidePaused = reducedMotionQuery.matches;
+const activeCarousels = [];
 
-if (aboutSlideDots) {
-  aboutSlideDots.innerHTML = aboutSlides
-    .map(
-      (_slide, index) => `
-        <button class="about-slide-dot" type="button" aria-label="${index + 1}번째 병원 소개 화면으로 이동" data-about-slide-index="${index}"></button>
-      `,
-    )
-    .join("");
-}
+const createFadeCarousel = ({
+  slides,
+  dotsContainer,
+  toggleButton,
+  dotClassName,
+  dotDataAttribute,
+  label,
+}) => {
+  let activeSlide = 0;
+  let slideTimer = 0;
+  let isPaused = reducedMotionQuery.matches;
 
-const aboutSlideDotButtons = Array.from(document.querySelectorAll("[data-about-slide-index]"));
-
-const renderAboutSlides = () => {
-  for (const [index, slide] of aboutSlides.entries()) {
-    const isActive = index === activeAboutSlide;
-
-    slide.classList.toggle("is-active", isActive);
-    slide.setAttribute("aria-hidden", String(!isActive));
+  if (dotsContainer) {
+    dotsContainer.innerHTML = slides
+      .map(
+        (_slide, index) => `
+          <button class="${dotClassName} slide-dot" type="button" aria-label="${index + 1}번째 ${label} 화면으로 이동" ${dotDataAttribute}="${index}"></button>
+        `,
+      )
+      .join("");
   }
 
-  for (const button of aboutSlideDotButtons) {
-    const isActive = Number(button.dataset.aboutSlideIndex) === activeAboutSlide;
+  const dotButtons = dotsContainer
+    ? Array.from(dotsContainer.querySelectorAll(`[${dotDataAttribute}]`))
+    : [];
 
-    button.classList.toggle("is-active", isActive);
-    button.toggleAttribute("aria-current", isActive);
-  }
+  const render = () => {
+    for (const [index, slide] of slides.entries()) {
+      const isActive = index === activeSlide;
 
-  if (aboutSlideToggle) {
-    aboutSlideToggle.setAttribute("aria-pressed", String(isAboutSlidePaused));
-    aboutSlideToggle.setAttribute("aria-label", isAboutSlidePaused ? "병원 소개 슬라이드 재생" : "병원 소개 슬라이드 일시정지");
-    aboutSlideToggle.querySelector("span").textContent = isAboutSlidePaused ? ">" : "||";
-  }
-};
-
-const showAboutSlide = (index) => {
-  activeAboutSlide = clamp(index, 0, aboutSlides.length - 1);
-  renderAboutSlides();
-};
-
-const clearAboutSlideTimer = () => {
-  window.clearTimeout(aboutSlideTimer);
-  aboutSlideTimer = 0;
-};
-
-const scheduleAboutSlide = () => {
-  clearAboutSlideTimer();
-
-  if (isAboutSlidePaused || aboutSlides.length < 2) {
-    return;
-  }
-
-  aboutSlideTimer = window.setTimeout(() => {
-    if (document.visibilityState === "visible") {
-      showAboutSlide((activeAboutSlide + 1) % aboutSlides.length);
+      slide.classList.toggle("is-active", isActive);
+      slide.setAttribute("aria-hidden", String(!isActive));
     }
 
-    scheduleAboutSlide();
-  }, ABOUT_SLIDE_INTERVAL);
-};
+    for (const button of dotButtons) {
+      const isActive = Number(button.getAttribute(dotDataAttribute)) === activeSlide;
 
-const pauseAboutSlides = () => {
-  isAboutSlidePaused = true;
-  clearAboutSlideTimer();
-  renderAboutSlides();
-};
+      button.classList.toggle("is-active", isActive);
+      button.toggleAttribute("aria-current", isActive);
+    }
 
-const resumeAboutSlides = () => {
-  isAboutSlidePaused = false;
-  renderAboutSlides();
-  scheduleAboutSlide();
-};
+    if (toggleButton) {
+      toggleButton.setAttribute("aria-pressed", String(isPaused));
+      toggleButton.setAttribute("aria-label", isPaused ? `${label} 슬라이드 재생` : `${label} 슬라이드 일시정지`);
+      toggleButton.querySelector("span").textContent = isPaused ? ">" : "||";
+    }
+  };
 
-for (const button of aboutSlideDotButtons) {
-  button.addEventListener("click", () => {
-    showAboutSlide(Number(button.dataset.aboutSlideIndex));
-    scheduleAboutSlide();
-  });
-}
+  const show = (index) => {
+    activeSlide = clamp(index, 0, slides.length - 1);
+    render();
+  };
 
-aboutSlideToggle?.addEventListener("click", () => {
-  if (isAboutSlidePaused) {
-    resumeAboutSlides();
-    return;
+  const clearTimer = () => {
+    window.clearTimeout(slideTimer);
+    slideTimer = 0;
+  };
+
+  const schedule = () => {
+    clearTimer();
+
+    if (isPaused || slides.length < 2) {
+      return;
+    }
+
+    slideTimer = window.setTimeout(() => {
+      if (document.visibilityState === "visible") {
+        show((activeSlide + 1) % slides.length);
+      }
+
+      schedule();
+    }, ABOUT_SLIDE_INTERVAL);
+  };
+
+  const pause = () => {
+    isPaused = true;
+    clearTimer();
+    render();
+  };
+
+  const resume = () => {
+    isPaused = false;
+    render();
+    schedule();
+  };
+
+  for (const button of dotButtons) {
+    button.addEventListener("click", () => {
+      show(Number(button.getAttribute(dotDataAttribute)));
+      schedule();
+    });
   }
 
-  pauseAboutSlides();
-});
+  toggleButton?.addEventListener("click", () => {
+    if (isPaused) {
+      resume();
+      return;
+    }
+
+    pause();
+  });
+
+  render();
+  schedule();
+
+  return { clearTimer, schedule };
+};
+
+activeCarousels.push(
+  createFadeCarousel({
+    slides: aboutSlides,
+    dotsContainer: aboutSlideDots,
+    toggleButton: aboutSlideToggle,
+    dotClassName: "about-slide-dot",
+    dotDataAttribute: "data-about-slide-index",
+    label: "병원 소개",
+  }),
+);
+
+activeCarousels.push(
+  createFadeCarousel({
+    slides: hoursSlides,
+    dotsContainer: hoursSlideDots,
+    toggleButton: hoursSlideToggle,
+    dotClassName: "hours-slide-dot",
+    dotDataAttribute: "data-hours-slide-index",
+    label: "진료안내",
+  }),
+);
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
-    scheduleAboutSlide();
+    for (const carousel of activeCarousels) {
+      carousel.schedule();
+    }
     return;
   }
 
-  clearAboutSlideTimer();
+  for (const carousel of activeCarousels) {
+    carousel.clearTimer();
+  }
 });
-
-renderAboutSlides();
-scheduleAboutSlide();
 
 const canAnimateHero =
   window.matchMedia("(hover: hover) and (pointer: fine)").matches &&

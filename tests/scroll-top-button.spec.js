@@ -251,18 +251,22 @@ test("about carousel advances, loops, jumps, and pauses inside the second snap p
     return {
       activeDotBackground: getComputedStyle(activeDot).backgroundColor,
       activeDotBorder: getComputedStyle(activeDot).borderTopColor,
+      controlsBorderWidth: getComputedStyle(controls).borderTopWidth,
       controlsBackground: getComputedStyle(controls).backgroundColor,
       contentTransitionDelay: getComputedStyle(activeContent).transitionDelay,
+      toggleBackground: getComputedStyle(toggle).backgroundColor,
       toggleBorder: getComputedStyle(toggle).borderTopColor,
       visualBackground: getComputedStyle(activeVisual).backgroundColor,
       visualTransitionDelay: getComputedStyle(activeVisual).transitionDelay,
     };
   });
 
-  expect(controlStyles.controlsBackground).toBe("rgb(1, 62, 106)");
+  expect(controlStyles.controlsBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(controlStyles.controlsBorderWidth).toBe("0px");
   expect(controlStyles.activeDotBackground).toBe("rgb(1, 62, 106)");
-  expect(controlStyles.activeDotBorder).toBe("rgb(255, 255, 255)");
-  expect(controlStyles.toggleBorder).toBe("rgb(255, 255, 255)");
+  expect(controlStyles.activeDotBorder).toBe("rgb(1, 62, 106)");
+  expect(controlStyles.toggleBackground).toBe("rgb(1, 62, 106)");
+  expect(controlStyles.toggleBorder).toBe("rgb(1, 62, 106)");
   expect(controlStyles.contentTransitionDelay).toContain("0.26s");
   expect(controlStyles.visualBackground).toBe("rgba(1, 62, 106, 0.08)");
   expect(controlStyles.visualTransitionDelay).toContain("0.08s");
@@ -293,4 +297,58 @@ test("about carousel advances, loops, jumps, and pauses inside the second snap p
 
   await page.waitForTimeout(4300);
   await expect.poll(activeAboutSlideIndex).toBe(2);
+});
+
+test("hours carousel fades, jumps, and pauses inside the third snap panel", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const activeHoursSlideIndex = () =>
+    page.evaluate(() =>
+      Array.from(document.querySelectorAll("[data-hours-slide]")).findIndex((slide) =>
+        slide.classList.contains("is-active"),
+      ),
+    );
+  const controlStyles = await page.evaluate(() => {
+    const controls = document.querySelector(".hours-slide-controls");
+    const toggle = document.querySelector(".hours-slide-toggle");
+    const activeDot = document.querySelector(".hours-slide-dot.is-active");
+    const activeContent = document.querySelector(".hours-slide.is-active .hours-slide__content");
+    const activeVisual = document.querySelector(".hours-slide.is-active .hours-slide__visual");
+
+    return {
+      activeDotBackground: getComputedStyle(activeDot).backgroundColor,
+      activeDotBorder: getComputedStyle(activeDot).borderTopColor,
+      controlsBorderWidth: getComputedStyle(controls).borderTopWidth,
+      controlsBackground: getComputedStyle(controls).backgroundColor,
+      contentTransitionDelay: getComputedStyle(activeContent).transitionDelay,
+      toggleBackground: getComputedStyle(toggle).backgroundColor,
+      toggleBorder: getComputedStyle(toggle).borderTopColor,
+      visualBackground: getComputedStyle(activeVisual).backgroundColor,
+      visualTransitionDelay: getComputedStyle(activeVisual).transitionDelay,
+    };
+  });
+
+  expect(controlStyles.controlsBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(controlStyles.controlsBorderWidth).toBe("0px");
+  expect(controlStyles.activeDotBackground).toBe("rgb(255, 255, 255)");
+  expect(controlStyles.activeDotBorder).toBe("rgb(255, 255, 255)");
+  expect(controlStyles.toggleBackground).toBe("rgb(255, 255, 255)");
+  expect(controlStyles.toggleBorder).toBe("rgb(255, 255, 255)");
+  expect(controlStyles.contentTransitionDelay).toContain("0.26s");
+  expect(controlStyles.visualBackground).toBe("rgba(255, 255, 255, 0.1)");
+  expect(controlStyles.visualTransitionDelay).toContain("0.08s");
+
+  await expect.poll(activeHoursSlideIndex).toBe(0);
+  await expect.poll(activeHoursSlideIndex, { timeout: 5200 }).toBe(1);
+
+  await page.getByRole("button", { name: "3번째 진료안내 화면으로 이동" }).click();
+  await expect.poll(activeHoursSlideIndex).toBe(2);
+
+  const pauseButton = page.getByRole("button", { name: "진료안내 슬라이드 일시정지" });
+  await pauseButton.click();
+  await expect(page.getByRole("button", { name: "진료안내 슬라이드 재생" })).toBeVisible();
+
+  await page.waitForTimeout(4300);
+  await expect.poll(activeHoursSlideIndex).toBe(2);
 });
