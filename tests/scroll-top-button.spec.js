@@ -124,6 +124,8 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     return {
       brandMarkOpacity: getComputedStyle(header.querySelector(".brand-mark img")).opacity,
       headerBackground: getComputedStyle(header).backgroundColor,
+      headerBackdropFilter:
+        getComputedStyle(header).backdropFilter || getComputedStyle(header).webkitBackdropFilter,
       headerBottom: Math.round(headerRect.bottom),
       headerHeight: Math.round(header.getBoundingClientRect().height),
       headerPosition: getComputedStyle(header).position,
@@ -134,7 +136,8 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     };
   });
 
-  expect(measurements.brandMarkOpacity).toBe("0.68");
+  expect(measurements.brandMarkOpacity).toBe("1");
+  expect(measurements.headerBackdropFilter).toBe("none");
   expect(measurements.headerBackground).toBe("rgba(1, 62, 106, 0.68)");
   expect(measurements.headerPosition).toBe("fixed");
   expect(measurements.heroTop).toBe(0);
