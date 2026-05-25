@@ -116,19 +116,30 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
   const measurements = await page.evaluate(() => {
     const header = document.querySelector(".site-header");
     const scrollRoot = document.querySelector("main#top");
+    const hero = document.querySelector(".hero");
     const panels = Array.from(document.querySelectorAll(".snap-panel"));
+    const headerRect = header.getBoundingClientRect();
+    const heroRect = hero.getBoundingClientRect();
 
     return {
+      brandMarkOpacity: getComputedStyle(header.querySelector(".brand-mark img")).opacity,
       headerBackground: getComputedStyle(header).backgroundColor,
+      headerBottom: Math.round(headerRect.bottom),
       headerHeight: Math.round(header.getBoundingClientRect().height),
+      headerPosition: getComputedStyle(header).position,
+      heroTop: Math.round(heroRect.top),
       rootHeight: Math.round(scrollRoot.getBoundingClientRect().height),
       viewportHeight: window.innerHeight,
       panelHeights: panels.map((panel) => Math.round(panel.getBoundingClientRect().height)),
     };
   });
 
-  expect(measurements.headerBackground).toBe("rgba(1, 62, 106, 0.9)");
-  expect(measurements.rootHeight).toBe(measurements.viewportHeight - measurements.headerHeight);
+  expect(measurements.brandMarkOpacity).toBe("0.68");
+  expect(measurements.headerBackground).toBe("rgba(1, 62, 106, 0.68)");
+  expect(measurements.headerPosition).toBe("fixed");
+  expect(measurements.heroTop).toBe(0);
+  expect(measurements.headerBottom).toBeGreaterThan(measurements.heroTop);
+  expect(measurements.rootHeight).toBe(measurements.viewportHeight);
   expect(measurements.panelHeights.length).toBeGreaterThan(4);
   for (const panelHeight of measurements.panelHeights) {
     expect(panelHeight).toBe(measurements.rootHeight);
