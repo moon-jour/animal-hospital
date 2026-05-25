@@ -113,10 +113,6 @@ document.querySelector("#app").innerHTML = `
       <div class="hero__content">
         <p class="eyebrow">24H ANIMAL MEDICAL CENTER</p>
         <h1>${hospitalDisplayName}</h1>
-        <div class="hero__actions" aria-label="주요 행동">
-          <a class="button button--primary" href="#hours">진료시간 보기</a>
-          <a class="button button--ghost" href="#doctors">원장 소개</a>
-        </div>
       </div>
     </section>
 

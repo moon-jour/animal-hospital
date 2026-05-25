@@ -56,7 +56,6 @@ test("hero uses layered care images and fades the entry text without lead copy",
     const foreground = document.querySelector(".hero__foreground");
     const eyebrow = document.querySelector(".hero .eyebrow");
     const title = document.querySelector(".hero h1");
-    const actions = document.querySelector(".hero__actions");
     const content = document.querySelector(".hero__content");
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -67,9 +66,6 @@ test("hero uses layered care images and fades the entry text without lead copy",
     const foregroundTransform = new DOMMatrixReadOnly(getComputedStyle(foreground).transform);
 
     return {
-      actionsAnimation: getComputedStyle(actions).animationName,
-      actionsDelay: getComputedStyle(actions).animationDelay,
-      actionsDuration: getComputedStyle(actions).animationDuration,
       backgroundImage: getComputedStyle(background).backgroundImage,
       backgroundPositionX: getComputedStyle(hero).getPropertyValue("--hero-bg-position-x").trim(),
       backgroundScale: getComputedStyle(hero).getPropertyValue("--hero-bg-scale").trim(),
@@ -80,6 +76,8 @@ test("hero uses layered care images and fades the entry text without lead copy",
       foregroundSrc: foreground.getAttribute("src"),
       foregroundTransformX: foregroundTransform.e,
       foregroundTransformY: foregroundTransform.f,
+      hasActions: Boolean(document.querySelector(".hero__actions")),
+      hasHeroButtons: Boolean(document.querySelector('.hero a[href="#hours"], .hero a[href="#doctors"]')),
       hasLead: Boolean(lead),
       heroStyle: main.getAttribute("style"),
       eyebrowAnimation: getComputedStyle(eyebrow).animationName,
@@ -96,20 +94,19 @@ test("hero uses layered care images and fades the entry text without lead copy",
   expect(heroDetails.foregroundAlpha).toBe(0);
   expect(heroDetails.foregroundFit).toBe("cover");
   expect(heroDetails.hasLead).toBe(false);
+  expect(heroDetails.hasActions).toBe(false);
+  expect(heroDetails.hasHeroButtons).toBe(false);
   expect(heroDetails.eyebrowAnimation).toBe("heroTextFadeIn");
   expect(heroDetails.titleAnimation).toBe("heroTextFadeIn");
-  expect(heroDetails.actionsAnimation).toBe("heroTextFadeIn");
   expect(heroDetails.titleDuration).toContain("1.8s");
-  expect(heroDetails.actionsDuration).toContain("1.8s");
   expect(heroDetails.titleDelay).toContain("0.36s");
-  expect(heroDetails.actionsDelay).toContain("0.72s");
   expect(heroDetails.backgroundPositionX).toBe("42%");
   expect(heroDetails.foregroundPositionX).toBe("42%");
   expect(heroDetails.foregroundTransformX).toBeGreaterThan(36);
   expect(heroDetails.foregroundTransformY).toBeGreaterThan(20);
   expect(heroDetails.backgroundScale).toBe("1.08");
   expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.34)");
-  expect(Number.parseFloat(heroDetails.contentMarginTop)).toBeGreaterThan(24);
+  expect(Number.parseFloat(heroDetails.contentMarginTop)).toBeGreaterThan(70);
 });
 
 test("snap panels fill the visible area below the header", async ({ page }) => {
