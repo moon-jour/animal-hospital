@@ -199,6 +199,56 @@ test("snap panel content fits within one mobile viewport", async ({ page }) => {
   await verifySnapPanelFit(page, { width: 390, height: 844 });
 });
 
+test("doctor cards prioritize large portraits with concise text", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const desktopDoctors = await page.evaluate(() => {
+    const cards = Array.from(document.querySelectorAll(".doctor-profile-card"));
+    const firstFigure = document.querySelector(".doctor-profile-card figure");
+    const firstImage = document.querySelector(".doctor-profile-card img");
+    const heading = document.querySelector(".doctors-heading h2");
+    const summary = document.querySelector(".doctors-heading > p");
+
+    return {
+      cardCount: cards.length,
+      descriptionCount: document.querySelectorAll(".doctor-profile-card p:not(.role)").length,
+      figureHeight: firstFigure.getBoundingClientRect().height,
+      headingText: heading.textContent.trim(),
+      imageFit: getComputedStyle(firstImage).objectFit,
+      imagePosition: getComputedStyle(firstImage).objectPosition,
+      roles: cards.map((card) => card.querySelector(".role")?.textContent.trim()),
+      strongTexts: cards.map((card) => card.querySelector("strong")?.textContent.trim()),
+      summaryText: summary.textContent.trim(),
+    };
+  });
+
+  expect(desktopDoctors.cardCount).toBe(2);
+  expect(desktopDoctors.descriptionCount).toBe(0);
+  expect(desktopDoctors.figureHeight).toBeGreaterThan(290);
+  expect(desktopDoctors.headingText).toBe("두 대표원장이 책임 진료합니다.");
+  expect(desktopDoctors.summaryText).toBe("응급, 외과, 내과, 회복 관리까지 함께 살핍니다.");
+  expect(desktopDoctors.imageFit).toBe("contain");
+  expect(desktopDoctors.imagePosition).toBe("50% 100%");
+  expect(desktopDoctors.roles).toEqual(["대표원장", "대표원장"]);
+  expect(desktopDoctors.strongTexts).toEqual(["대학병원 출신 수의사", "대학병원 출신 수의사"]);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+
+  const mobileDoctors = await page.evaluate(() => {
+    const firstFigure = document.querySelector(".doctor-profile-card figure");
+
+    return {
+      figureHeight: firstFigure.getBoundingClientRect().height,
+      figureWidth: firstFigure.getBoundingClientRect().width,
+    };
+  });
+
+  expect(mobileDoctors.figureHeight).toBeGreaterThanOrEqual(216);
+  expect(mobileDoctors.figureWidth).toBeGreaterThan(140);
+});
+
 test("wheel snap scroll is controlled and does not overshoot the next panel", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");

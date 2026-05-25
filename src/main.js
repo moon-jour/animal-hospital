@@ -294,9 +294,9 @@ document.querySelector("#app").innerHTML = `
       <div class="section-heading doctors-heading">
         <div>
           <div class="section-kicker">24H VETERINARY TEAM</div>
-          <h2>대학병원 출신 대표원장이 밤낮으로 진료를 이어갑니다.</h2>
+          <h2>두 대표원장이 책임 진료합니다.</h2>
         </div>
-        <p>두 대표원장이 응급 진료, 외과 수술, 내과 상담, 회복 관리까지 함께 살핍니다.</p>
+        <p>응급, 외과, 내과, 회복 관리까지 함께 살핍니다.</p>
       </div>
       <div class="doctor-showcase" aria-label="대표원장 소개">
         <article class="doctor-profile-card">
@@ -304,13 +304,9 @@ document.querySelector("#app").innerHTML = `
             <img src="${hongDoctorImageUrl}" alt="홍정호 대표원장" />
           </figure>
           <div>
-            <p class="role">CHIEF VETERINARIAN</p>
+            <p class="role">대표원장</p>
             <h3>홍정호 대표원장</h3>
             <strong>대학병원 출신 수의사</strong>
-            <p>
-              응급 진료, 외과 수술, 내과 상담, 회복 관리까지 필요한 진료 전 과정을 차분하게 설명합니다.
-              보호자가 이해할 수 있는 언어로 검사와 치료 선택지를 안내합니다.
-            </p>
           </div>
         </article>
         <article class="doctor-profile-card">
@@ -318,13 +314,9 @@ document.querySelector("#app").innerHTML = `
             <img src="${kimDoctorImageUrl}" alt="김민연 대표원장" />
           </figure>
           <div>
-            <p class="role">CHIEF VETERINARIAN</p>
+            <p class="role">대표원장</p>
             <h3>김민연 대표원장</h3>
             <strong>대학병원 출신 수의사</strong>
-            <p>
-              야간 응급 상황부터 수술 전 평가, 내과적 관리, 회복 계획까지 한 흐름으로 살핍니다.
-              반려동물 상태와 보호자 상황에 맞춰 필요한 다음 단계를 명확하게 안내합니다.
-            </p>
           </div>
         </article>
       </div>
