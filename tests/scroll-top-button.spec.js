@@ -119,6 +119,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     const panels = Array.from(document.querySelectorAll(".snap-panel"));
 
     return {
+      headerBackground: getComputedStyle(header).backgroundColor,
       headerHeight: Math.round(header.getBoundingClientRect().height),
       rootHeight: Math.round(scrollRoot.getBoundingClientRect().height),
       viewportHeight: window.innerHeight,
@@ -126,6 +127,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     };
   });
 
+  expect(measurements.headerBackground).toBe("rgba(1, 62, 106, 0.9)");
   expect(measurements.rootHeight).toBe(measurements.viewportHeight - measurements.headerHeight);
   expect(measurements.panelHeights.length).toBeGreaterThan(4);
   for (const panelHeight of measurements.panelHeights) {
@@ -211,8 +213,10 @@ test("doctor cards prioritize large portraits with concise text", async ({ page 
     const summary = document.querySelector(".doctors-heading > p");
 
     return {
+      cardBackground: getComputedStyle(cards[0]).backgroundColor,
       cardCount: cards.length,
       descriptionCount: document.querySelectorAll(".doctor-profile-card p:not(.role)").length,
+      figureBackground: getComputedStyle(firstFigure).backgroundColor,
       figureHeight: firstFigure.getBoundingClientRect().height,
       headingText: heading.textContent.trim(),
       imageFit: getComputedStyle(firstImage).objectFit,
@@ -224,7 +228,9 @@ test("doctor cards prioritize large portraits with concise text", async ({ page 
   });
 
   expect(desktopDoctors.cardCount).toBe(2);
+  expect(desktopDoctors.cardBackground).toBe("rgb(238, 241, 236)");
   expect(desktopDoctors.descriptionCount).toBe(0);
+  expect(desktopDoctors.figureBackground).toBe("rgb(238, 241, 236)");
   expect(desktopDoctors.figureHeight).toBeGreaterThan(290);
   expect(desktopDoctors.headingText).toBe("두 대표원장이 책임 진료합니다.");
   expect(desktopDoctors.summaryText).toBe("응급, 외과, 내과, 회복 관리까지 함께 살핍니다.");
