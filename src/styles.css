@@ -249,8 +249,8 @@ img {
 .hero {
   --hero-bg-shift-x: 0px;
   --hero-bg-shift-y: 0px;
-  --hero-fg-base-x: clamp(14px, 2.2vw, 30px);
-  --hero-fg-base-y: clamp(12px, 2vh, 22px);
+  --hero-fg-base-x: clamp(28px, 3.4vw, 48px);
+  --hero-fg-base-y: clamp(22px, 3.5vh, 40px);
   --hero-fg-shift-x: 0px;
   --hero-fg-shift-y: 0px;
   --hero-bg-position-x: 42%;

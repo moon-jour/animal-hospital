@@ -105,8 +105,8 @@ test("hero uses layered care images and fades the entry text without lead copy",
   expect(heroDetails.actionsDelay).toContain("0.72s");
   expect(heroDetails.backgroundPositionX).toBe("42%");
   expect(heroDetails.foregroundPositionX).toBe("42%");
-  expect(heroDetails.foregroundTransformX).toBeGreaterThan(10);
-  expect(heroDetails.foregroundTransformY).toBeGreaterThan(10);
+  expect(heroDetails.foregroundTransformX).toBeGreaterThan(36);
+  expect(heroDetails.foregroundTransformY).toBeGreaterThan(20);
   expect(heroDetails.backgroundScale).toBe("1.08");
   expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.34)");
   expect(Number.parseFloat(heroDetails.contentMarginTop)).toBeGreaterThan(24);
