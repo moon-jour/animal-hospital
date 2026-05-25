@@ -819,6 +819,8 @@ const facilitySlideElements = Array.from(document.querySelectorAll("[data-facili
 const facilitySlideDots = document.querySelector("[data-facility-slide-dots]");
 const facilitySlideToggle = document.querySelector("[data-facility-slide-toggle]");
 const ABOUT_SLIDE_INTERVAL = 4000;
+const CAROUSEL_SWIPE_THRESHOLD = 52;
+const CAROUSEL_SWIPE_AXIS_RATIO = 1.2;
 const activeCarousels = [];
 
 const createFadeCarousel = ({
@@ -833,6 +835,10 @@ const createFadeCarousel = ({
   let activeSlide = 0;
   let slideTimer = 0;
   let isPaused = reducedMotionQuery.matches;
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let swipeTracking = false;
+  let swipeMovedHorizontally = false;
 
   if (dotsContainer) {
     dotsContainer.innerHTML = slides
@@ -875,6 +881,11 @@ const createFadeCarousel = ({
     render();
   };
 
+  const showWrapped = (index) => {
+    activeSlide = (index + slides.length) % slides.length;
+    render();
+  };
+
   const clearTimer = () => {
     window.clearTimeout(slideTimer);
     slideTimer = 0;
@@ -913,6 +924,16 @@ const createFadeCarousel = ({
     schedule();
   };
 
+  const showNext = () => {
+    showWrapped(activeSlide + 1);
+    schedule();
+  };
+
+  const showPrevious = () => {
+    showWrapped(activeSlide - 1);
+    schedule();
+  };
+
   for (const button of dotButtons) {
     button.addEventListener("click", () => {
       show(Number(button.getAttribute(dotDataAttribute)));
@@ -927,6 +948,78 @@ const createFadeCarousel = ({
     }
 
     pause();
+  });
+
+  section?.addEventListener(
+    "touchstart",
+    (event) => {
+      if (slides.length < 2 || event.touches.length !== 1) {
+        swipeTracking = false;
+        return;
+      }
+
+      swipeTracking = true;
+      swipeMovedHorizontally = false;
+      swipeStartX = event.touches[0].clientX;
+      swipeStartY = event.touches[0].clientY;
+    },
+    { passive: true },
+  );
+
+  section?.addEventListener(
+    "touchmove",
+    (event) => {
+      if (!swipeTracking || event.touches.length !== 1) {
+        return;
+      }
+
+      const deltaX = event.touches[0].clientX - swipeStartX;
+      const deltaY = event.touches[0].clientY - swipeStartY;
+      const absoluteX = Math.abs(deltaX);
+      const absoluteY = Math.abs(deltaY);
+
+      if (absoluteX > 8 && absoluteX > absoluteY * CAROUSEL_SWIPE_AXIS_RATIO) {
+        swipeMovedHorizontally = true;
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+
+  section?.addEventListener("touchend", (event) => {
+    if (!swipeTracking) {
+      return;
+    }
+
+    swipeTracking = false;
+
+    if (!swipeMovedHorizontally || event.changedTouches.length === 0) {
+      return;
+    }
+
+    const deltaX = event.changedTouches[0].clientX - swipeStartX;
+    const deltaY = event.changedTouches[0].clientY - swipeStartY;
+    const absoluteX = Math.abs(deltaX);
+    const absoluteY = Math.abs(deltaY);
+
+    if (
+      absoluteX < CAROUSEL_SWIPE_THRESHOLD ||
+      absoluteX <= absoluteY * CAROUSEL_SWIPE_AXIS_RATIO
+    ) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      showNext();
+      return;
+    }
+
+    showPrevious();
+  });
+
+  section?.addEventListener("touchcancel", () => {
+    swipeTracking = false;
+    swipeMovedHorizontally = false;
   });
 
   render();

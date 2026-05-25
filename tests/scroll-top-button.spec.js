@@ -108,7 +108,7 @@ test("hero uses layered care images and fades the entry text without lead copy",
   expect(heroDetails.foregroundTransformX).toBeGreaterThan(10);
   expect(heroDetails.foregroundTransformY).toBeGreaterThan(10);
   expect(heroDetails.backgroundScale).toBe("1.08");
-  expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.5)");
+  expect(heroDetails.overlayBackground).toBe("rgba(4, 50, 75, 0.34)");
   expect(Number.parseFloat(heroDetails.contentMarginTop)).toBeGreaterThan(24);
 });
 
@@ -563,6 +563,101 @@ test("fade carousels restart from the first slide when their snap panel is enter
     element.scrollTo({ top: element.clientHeight * 2, behavior: "auto" });
   });
   await expect.poll(() => activeSlideIndex("[data-facility-slide]")).toBe(0);
+});
+
+test("mobile horizontal swipes move carousel slides without changing snap panels", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const results = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const waitForFrames = () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+    const activeSlideIndex = (selector) =>
+      Array.from(document.querySelectorAll(selector)).findIndex((slide) =>
+        slide.classList.contains("is-active"),
+      );
+    const dispatchTouch = (target, type, x, y) => {
+      const touch = {
+        clientX: x,
+        clientY: y,
+        force: 1,
+        identifier: 1,
+        pageX: x,
+        pageY: y,
+        radiusX: 1,
+        radiusY: 1,
+        rotationAngle: 0,
+        screenX: x,
+        screenY: y,
+        target,
+      };
+      const event = new Event(type, { bubbles: true, cancelable: true });
+
+      Object.defineProperty(event, "touches", {
+        value: type === "touchend" || type === "touchcancel" ? [] : [touch],
+      });
+      Object.defineProperty(event, "changedTouches", { value: [touch] });
+      target.dispatchEvent(event);
+
+      return event.defaultPrevented;
+    };
+    const carouselTargets = [
+      { section: "#about", slide: "[data-about-slide]", panelIndex: 1 },
+      { section: "#space", slide: "[data-facility-slide]", panelIndex: 2 },
+      { section: "#hours", slide: "[data-hours-slide]", panelIndex: 3 },
+    ];
+    const swipeReports = [];
+
+    for (const target of carouselTargets) {
+      const section = document.querySelector(target.section);
+      const slideCount = document.querySelectorAll(target.slide).length;
+
+      scrollRoot.scrollTo({ top: panelHeight * target.panelIndex, behavior: "auto" });
+      await waitForFrames();
+
+      const before = activeSlideIndex(target.slide);
+      const topBefore = Math.round(scrollRoot.scrollTop);
+      dispatchTouch(section, "touchstart", 330, 430);
+      const leftMovePrevented = dispatchTouch(section, "touchmove", 170, 434);
+      dispatchTouch(section, "touchend", 92, 438);
+      await waitForFrames();
+
+      const afterLeft = activeSlideIndex(target.slide);
+      const panelAfterLeft = Math.round(scrollRoot.scrollTop / panelHeight);
+
+      dispatchTouch(section, "touchstart", 82, 430);
+      const rightMovePrevented = dispatchTouch(section, "touchmove", 250, 434);
+      dispatchTouch(section, "touchend", 330, 438);
+      await waitForFrames();
+
+      swipeReports.push({
+        afterLeft,
+        afterRight: activeSlideIndex(target.slide),
+        before,
+        expectedLeft: (before + 1) % slideCount,
+        expectedPanelIndex: Math.round(topBefore / panelHeight),
+        leftMovePrevented,
+        panelAfterLeft,
+        panelAfterRight: Math.round(scrollRoot.scrollTop / panelHeight),
+        rightMovePrevented,
+      });
+    }
+
+    return swipeReports;
+  });
+
+  for (const result of results) {
+    expect(result.leftMovePrevented).toBe(true);
+    expect(result.rightMovePrevented).toBe(true);
+    expect(result.afterLeft).toBe(result.expectedLeft);
+    expect(result.afterRight).toBe(result.before);
+    expect(result.panelAfterLeft).toBe(result.expectedPanelIndex);
+    expect(result.panelAfterRight).toBe(result.expectedPanelIndex);
+  }
 });
 
 test("about carousel advances, loops, jumps, and pauses inside the second snap panel", async ({ page }) => {
