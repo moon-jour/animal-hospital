@@ -406,6 +406,8 @@ const WHEEL_DELTA_THRESHOLD = 360;
 const WHEEL_GESTURE_MIN_EVENTS = 2;
 const TOUCH_DELTA_THRESHOLD = 48;
 const WHEEL_EVENT_GAP_MS = 220;
+const REVEAL_SHOW_RATIO = 0.32;
+const REVEAL_HIDE_RATIO = 0.08;
 
 let scrollAnimationFrame = 0;
 let wheelDeltaAccumulator = 0;
@@ -778,23 +780,25 @@ if ("IntersectionObserver" in window && !reducedMotionQuery.matches) {
   const revealObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting && entry.intersectionRatio >= REVEAL_SHOW_RATIO) {
           entry.target.classList.add("is-visible");
-          revealObserver.unobserve(entry.target);
+          continue;
+        }
+
+        if (!entry.isIntersecting || entry.intersectionRatio <= REVEAL_HIDE_RATIO) {
+          entry.target.classList.remove("is-visible");
         }
       }
     },
     {
       root: scrollRoot,
-      rootMargin: "0px 0px -16% 0px",
-      threshold: 0.12,
+      rootMargin: "0px",
+      threshold: [0, REVEAL_HIDE_RATIO, REVEAL_SHOW_RATIO, 0.72],
     },
   );
 
   for (const section of revealSections) {
-    if (!section.classList.contains("is-visible")) {
-      revealObserver.observe(section);
-    }
+    revealObserver.observe(section);
   }
 } else {
   for (const section of revealSections) {

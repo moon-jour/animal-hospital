@@ -136,6 +136,47 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
   }
 });
 
+test("reveal sections fade in slowly every time they are entered from either direction", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const revealReport = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const about = document.querySelector("#about");
+    const space = document.querySelector("#space");
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const revealDuration = getComputedStyle(about).transitionDuration;
+
+    scrollRoot.scrollTo({ top: scrollRoot.clientHeight, behavior: "auto" });
+    await wait(90);
+    const aboutVisibleAfterDown = about.classList.contains("is-visible");
+
+    scrollRoot.scrollTo({ top: scrollRoot.clientHeight * 2, behavior: "auto" });
+    await wait(90);
+    const aboutHiddenAfterLeaving = !about.classList.contains("is-visible");
+    const spaceVisibleAfterDown = space.classList.contains("is-visible");
+
+    scrollRoot.scrollTo({ top: scrollRoot.clientHeight, behavior: "auto" });
+    await wait(90);
+
+    return {
+      aboutHiddenAfterLeaving,
+      aboutVisibleAfterDown,
+      aboutVisibleAfterUp: about.classList.contains("is-visible"),
+      revealDuration,
+      spaceHiddenAfterUp: !space.classList.contains("is-visible"),
+      spaceVisibleAfterDown,
+    };
+  });
+
+  expect(revealReport.revealDuration).toContain("1.85s");
+  expect(revealReport.aboutVisibleAfterDown).toBe(true);
+  expect(revealReport.aboutHiddenAfterLeaving).toBe(true);
+  expect(revealReport.spaceVisibleAfterDown).toBe(true);
+  expect(revealReport.aboutVisibleAfterUp).toBe(true);
+  expect(revealReport.spaceHiddenAfterUp).toBe(true);
+});
+
 async function verifySnapPanelFit(page, viewport) {
   await page.setViewportSize(viewport);
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -784,9 +825,9 @@ test("about carousel advances, loops, jumps, and pauses inside the second snap p
   expect(controlStyles.activeDotBorder).toBe("rgb(1, 62, 106)");
   expect(controlStyles.toggleBackground).toBe("rgb(1, 62, 106)");
   expect(controlStyles.toggleBorder).toBe("rgb(1, 62, 106)");
-  expect(controlStyles.contentTransitionDelay).toContain("0.26s");
+  expect(controlStyles.contentTransitionDelay).toContain("0.46s");
   expect(controlStyles.visualBackground).toBe("rgba(1, 62, 106, 0.08)");
-  expect(controlStyles.visualTransitionDelay).toContain("0.08s");
+  expect(controlStyles.visualTransitionDelay).toContain("0.14s");
 
   await expect.poll(activeAboutSlideIndex).toBe(0);
   await expect.poll(activeAboutSlideIndex, { timeout: 5200 }).toBe(1);
@@ -863,10 +904,10 @@ test("hours carousel fades, jumps, and pauses inside the fourth snap panel", asy
   expect(controlStyles.activeDotBorder).toBe("rgb(255, 255, 255)");
   expect(controlStyles.toggleBackground).toBe("rgb(255, 255, 255)");
   expect(controlStyles.toggleBorder).toBe("rgb(255, 255, 255)");
-  expect(controlStyles.contentTransitionDelay).toContain("0.26s");
+  expect(controlStyles.contentTransitionDelay).toContain("0.46s");
   expect(controlStyles.visualBackground).toBe("rgba(255, 255, 255, 0.1)");
   expect(controlStyles.visualText).toEqual(["", "", ""]);
-  expect(controlStyles.visualTransitionDelay).toContain("0.08s");
+  expect(controlStyles.visualTransitionDelay).toContain("0.14s");
 
   await expect.poll(activeHoursSlideIndex).toBe(0);
   await expect.poll(activeHoursSlideIndex, { timeout: 5200 }).toBe(1);

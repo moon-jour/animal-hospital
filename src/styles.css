@@ -84,24 +84,19 @@ img {
 
 .reveal-section:not(.is-visible) {
   opacity: 0;
-  transform: translateY(36px);
 }
 
 .reveal-section.is-visible {
   opacity: 1;
-  transform: translateY(0);
 }
 
 .reveal-section {
-  transition:
-    opacity 1150ms ease,
-    transform 1250ms cubic-bezier(0.19, 1, 0.22, 1);
+  transition: opacity 1850ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal-section {
     opacity: 1;
-    transform: none;
     transition: none;
   }
 }
@@ -555,8 +550,8 @@ img {
   opacity: 0;
   transform: translate(46px, -50%);
   transition:
-    opacity 640ms ease,
-    transform 760ms cubic-bezier(0.19, 1, 0.22, 1);
+    opacity 1120ms ease,
+    transform 1380ms cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .hours-slide__visual {
@@ -575,7 +570,7 @@ img {
 .hours-slide.is-active .hours-slide__visual {
   opacity: 1;
   transform: translate(0, -50%);
-  transition-delay: 80ms;
+  transition-delay: 140ms;
 }
 
 .about-slide__content,
@@ -588,15 +583,15 @@ img {
   opacity: 0;
   transform: translateX(34px);
   transition:
-    opacity 520ms ease,
-    transform 680ms cubic-bezier(0.19, 1, 0.22, 1);
+    opacity 1080ms ease,
+    transform 1320ms cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .about-slide.is-active .about-slide__content,
 .hours-slide.is-active .hours-slide__content {
   opacity: 1;
   transform: translateX(0);
-  transition-delay: 260ms;
+  transition-delay: 460ms;
 }
 
 .about-slide__content--compact,
@@ -1004,7 +999,7 @@ img {
   background: #000000;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 640ms ease;
+  transition: opacity 1120ms ease;
 }
 
 .facility-slide.is-active {
@@ -1046,14 +1041,14 @@ img {
   opacity: 0;
   transform: translateX(34px);
   transition:
-    opacity 520ms ease,
-    transform 680ms cubic-bezier(0.19, 1, 0.22, 1);
+    opacity 1080ms ease,
+    transform 1320ms cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .facility-slide.is-active .facility-caption {
   opacity: 1;
   transform: translateX(0);
-  transition-delay: 260ms;
+  transition-delay: 460ms;
 }
 
 .facility-caption .section-kicker {
