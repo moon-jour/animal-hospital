@@ -417,6 +417,7 @@ let touchStartX = 0;
 let touchStartY = 0;
 let touchTracking = false;
 let touchMovedVertically = false;
+let prepareCarouselForTargetTop = () => {};
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -483,6 +484,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
   const maxScrollTop = Math.max(0, scrollRoot.scrollHeight - scrollRoot.clientHeight);
   const nextTop = clamp(targetTop, 0, maxScrollTop);
 
+  prepareCarouselForTargetTop(nextTop);
   stopScrollAnimation();
 
   if (reducedMotionQuery.matches || behavior === "auto") {
@@ -1063,6 +1065,22 @@ activeCarousels.push(
     section: document.querySelector("#space"),
   }),
 );
+
+prepareCarouselForTargetTop = (targetTop) => {
+  if (!scrollRoot || activeCarousels.length === 0 || snapPanels.length === 0) {
+    return;
+  }
+
+  const panelIndex = clamp(
+    Math.round(targetTop / Math.max(1, scrollRoot.clientHeight)),
+    0,
+    snapPanels.length - 1,
+  );
+  const targetPanel = snapPanels[panelIndex];
+  const carousel = activeCarousels.find(({ section }) => section === targetPanel);
+
+  carousel?.resetToFirst();
+};
 
 if ("IntersectionObserver" in window && scrollRoot) {
   const enteredCarouselSections = new Set();

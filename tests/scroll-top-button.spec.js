@@ -565,6 +565,87 @@ test("fade carousels restart from the first slide when their snap panel is enter
   await expect.poll(() => activeSlideIndex("[data-facility-slide]")).toBe(0);
 });
 
+test("controlled snap prepares carousel first slides before the target panel appears", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/");
+
+  const reports = await page.evaluate(async () => {
+    const scrollRoot = document.querySelector("main#top");
+    const panelHeight = scrollRoot.clientHeight;
+    const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const waitForFrames = () =>
+      new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      });
+    const activeSlideIndex = (selector) =>
+      Array.from(document.querySelectorAll(selector)).findIndex((slide) =>
+        slide.classList.contains("is-active"),
+      );
+    const sendWheel = () => {
+      for (const deltaY of [180, 180, 180]) {
+        scrollRoot.dispatchEvent(
+          new WheelEvent("wheel", {
+            bubbles: true,
+            cancelable: true,
+            deltaY,
+          }),
+        );
+      }
+    };
+    const scenarios = [
+      {
+        dotSelector: '[data-about-slide-index="2"]',
+        slideSelector: "[data-about-slide]",
+        startPanelIndex: 0,
+        targetPanelIndex: 1,
+      },
+      {
+        dotSelector: '[data-facility-slide-index="4"]',
+        slideSelector: "[data-facility-slide]",
+        startPanelIndex: 1,
+        targetPanelIndex: 2,
+      },
+      {
+        dotSelector: '[data-hours-slide-index="2"]',
+        slideSelector: "[data-hours-slide]",
+        startPanelIndex: 2,
+        targetPanelIndex: 3,
+      },
+    ];
+    const results = [];
+
+    for (const scenario of scenarios) {
+      scrollRoot.scrollTo({ top: panelHeight * scenario.startPanelIndex, behavior: "auto" });
+      await waitForFrames();
+
+      document.querySelector(scenario.dotSelector).click();
+      const beforeSnap = activeSlideIndex(scenario.slideSelector);
+
+      sendWheel();
+      const immediatelyAfterWheel = activeSlideIndex(scenario.slideSelector);
+
+      await wait(1180);
+
+      results.push({
+        beforeSnap,
+        finalPanelIndex: Math.round(scrollRoot.scrollTop / panelHeight),
+        finalSlide: activeSlideIndex(scenario.slideSelector),
+        immediatelyAfterWheel,
+        targetPanelIndex: scenario.targetPanelIndex,
+      });
+    }
+
+    return results;
+  });
+
+  for (const report of reports) {
+    expect(report.beforeSnap).toBeGreaterThan(0);
+    expect(report.immediatelyAfterWheel).toBe(0);
+    expect(report.finalSlide).toBe(0);
+    expect(report.finalPanelIndex).toBe(report.targetPanelIndex);
+  }
+});
+
 test("mobile horizontal swipes move carousel slides without changing snap panels", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
