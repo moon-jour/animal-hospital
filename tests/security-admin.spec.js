@@ -225,16 +225,25 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   const reviewsLayout = await page.evaluate(() => {
     const header = document.querySelector(".reviews-header")?.getBoundingClientRect();
     const title = document.querySelector(".reviews-main h1");
+    const activeReviewLink = document.querySelector(".reviews-nav a.is-active");
+    const surgerySelect = document.querySelector(".reviews-toolbar select");
 
     return {
       bodyOverflowY: getComputedStyle(document.body).overflowY,
+      headerBackground: getComputedStyle(document.querySelector(".reviews-header")).backgroundColor,
       headerHeight: Math.round(header?.height || 0),
+      reviewLinkColor: getComputedStyle(activeReviewLink).color,
+      surgerySelectPaddingRight: Number.parseFloat(getComputedStyle(surgerySelect).paddingRight),
       titleFontSize: Number.parseFloat(getComputedStyle(title).fontSize),
     };
   });
   expect(reviewsLayout.bodyOverflowY).toBe("auto");
+  expect(reviewsLayout.headerBackground).toBe("rgb(1, 62, 106)");
   expect(reviewsLayout.headerHeight).toBeGreaterThanOrEqual(96);
+  expect(reviewsLayout.reviewLinkColor).toBe("rgb(56, 221, 208)");
+  expect(reviewsLayout.surgerySelectPaddingRight).toBeGreaterThanOrEqual(34);
   expect(reviewsLayout.titleFontSize).toBeLessThanOrEqual(56);
+  await expect(page.getByText("SUYEONG ANIMAL MEDICAL CENTER")).toBeVisible();
   await page.goto(`/reviews/${created.slug}`);
   await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
   await expect(page.locator(".review-detail__gallery img")).toHaveCount(2);

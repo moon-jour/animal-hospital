@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getPublishedReview } from "../../../lib/server/reviews.js";
+import ReviewsHeader from "../ReviewsHeader.jsx";
 
 export const dynamic = "force-dynamic";
 
@@ -27,14 +28,9 @@ export default async function ReviewDetailPage({ params }) {
 
   return (
     <main className="reviews-page">
-      <header className="reviews-header">
-        <Link className="reviews-brand" href="/">
-          <img alt="" src="/images/hospital-symbol.jpeg" />
-          <span>24시수영동물의료센터</span>
-        </Link>
-        <Link href="/reviews">수술 후기 목록</Link>
-      </header>
+      <ReviewsHeader />
       <article className="reviews-main review-detail">
+        <Link className="review-detail__back" href="/reviews">수술 후기 목록</Link>
         <div className="review-detail__meta">
           <span>{review.category}</span>
           {review.breed ? <span>{review.breed}</span> : null}

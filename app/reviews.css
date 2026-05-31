@@ -28,7 +28,7 @@ body:has(.reviews-page) {
   min-height: var(--header-height);
   gap: 24px;
   padding: 0 clamp(20px, 3.2vw, 48px);
-  background: rgba(var(--brand-navy-rgb), 0.78);
+  background: rgb(var(--brand-navy-rgb));
   color: #ffffff;
 }
 
@@ -38,16 +38,100 @@ body:has(.reviews-page) {
 }
 
 .reviews-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
   gap: 12px;
   font-weight: 800;
 }
 
-.reviews-brand img {
+.reviews-brand__mark {
+  display: block;
   width: 42px;
   height: 42px;
+  overflow: hidden;
+}
+
+.reviews-brand__mark img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+}
+
+.reviews-brand strong,
+.reviews-brand small {
+  display: block;
+  line-height: 1.2;
+}
+
+.reviews-brand strong {
+  font-size: 1rem;
+}
+
+.reviews-brand small {
+  margin-top: 3px;
+  color: currentColor;
+  font-size: 0.68rem;
+  opacity: 0.68;
+}
+
+.reviews-nav {
+  display: flex;
+  flex: 1 1 auto;
+  align-self: stretch;
+  align-items: stretch;
+  justify-content: center;
+  min-width: 0;
+}
+
+.reviews-nav ul {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.reviews-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  padding: 0 clamp(11px, 1.1vw, 20px);
+  color: currentColor;
+  font-size: 1rem;
+  font-weight: 800;
+  transition: color 260ms ease;
+}
+
+.reviews-nav a:hover,
+.reviews-nav a:focus-visible {
+  color: #00a99d;
+  outline: none;
+}
+
+.reviews-nav a.is-active {
+  color: #38ddd0;
+}
+
+.reviews-header__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  min-width: 170px;
+}
+
+.reviews-header__call {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: currentColor;
+  font-size: 0.92rem;
+  font-weight: 800;
 }
 
 .reviews-main {
@@ -106,6 +190,10 @@ body:has(.reviews-page) {
   color: #0a2344;
   background: #ffffff;
   font: inherit;
+}
+
+.reviews-toolbar select {
+  padding-right: 34px;
 }
 
 .reviews-reset {
@@ -236,6 +324,14 @@ body:has(.reviews-page) {
   font-size: 18px;
 }
 
+.review-detail__back {
+  display: inline-flex;
+  margin-bottom: 24px;
+  color: rgba(10, 35, 68, 0.68);
+  font-size: 14px;
+  font-weight: 900;
+}
+
 .review-empty {
   margin-top: 28px;
   padding: 44px;
@@ -248,5 +344,10 @@ body:has(.reviews-page) {
   .reviews-toolbar,
   .reviews-grid {
     grid-template-columns: 1fr;
+  }
+
+  .reviews-nav,
+  .reviews-header__actions {
+    display: none;
   }
 }
