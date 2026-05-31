@@ -22,6 +22,38 @@ const thumbnailSize = 960;
 const compressionQualities = [0.86, 0.78, 0.7, 0.62, 0.54, 0.46];
 const csrfCookieName = "sams_admin_csrf";
 const csrfWarningMessage = "보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.";
+const retryableStatuses = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+async function fetchJsonWithRetry(url, options = {}, { retries = 2, delayMs = 350 } = {}) {
+  let lastResult;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const response = await fetch(url, options);
+      const payload = await response.json().catch(() => ({}));
+
+      lastResult = { response, payload };
+
+      if (response.ok || !retryableStatuses.has(response.status) || attempt === retries) {
+        return lastResult;
+      }
+    } catch (error) {
+      if (attempt === retries) {
+        throw error;
+      }
+    }
+
+    await sleep(delayMs * (attempt + 1));
+  }
+
+  return lastResult;
+}
 
 function readCookieValue(name) {
   return document.cookie
@@ -282,6 +314,10 @@ function requestSummary(request) {
     return `${request.label}: 실패 (${request.error})`;
   }
 
+  if (!request.status) {
+    return "아직 확인 전입니다.";
+  }
+
   return `${request.label}: HTTP ${request.status}`;
 }
 
@@ -385,11 +421,10 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
   const fileInputRef = useRef(null);
 
   const refreshCsrfToken = async () => {
-    const response = await fetch("/api/admin/csrf", {
+    const { response, payload } = await fetchJsonWithRetry("/api/admin/csrf", {
       cache: "no-store",
       credentials: "same-origin",
     });
-    const payload = await response.json().catch(() => ({}));
 
     if (!response.ok || !payload.csrfToken) {
       const cookieToken = getCsrfToken();
@@ -441,19 +476,19 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       },
       csrfApi: {
         label: "/api/admin/csrf",
-        ok: false,
-        status: 0,
+        ok: null,
+        status: null,
         token: summarizeClientToken(""),
       },
       serverDebug: {
         label: "/api/admin/debug",
-        ok: false,
-        status: 0,
+        ok: null,
+        status: null,
       },
       adminReviews: {
         label: "/api/admin/reviews",
-        ok: false,
-        status: 0,
+        ok: null,
+        status: null,
         count: 0,
       },
     };
@@ -461,11 +496,10 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     let token = getCsrfToken() || csrfToken || "";
 
     try {
-      const response = await fetch("/api/admin/csrf", {
+      const { response, payload } = await fetchJsonWithRetry("/api/admin/csrf", {
         cache: "no-store",
         credentials: "same-origin",
       });
-      const payload = await response.json().catch(() => ({}));
 
       nextDiagnostics.csrfApi = {
         ...nextDiagnostics.csrfApi,
@@ -481,6 +515,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     } catch (error) {
       nextDiagnostics.csrfApi = {
         ...nextDiagnostics.csrfApi,
+        ok: false,
         error: error.message,
       };
     }
@@ -504,6 +539,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     } catch (error) {
       nextDiagnostics.serverDebug = {
         ...nextDiagnostics.serverDebug,
+        ok: false,
         error: error.message,
       };
     }
@@ -524,6 +560,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     } catch (error) {
       nextDiagnostics.adminReviews = {
         ...nextDiagnostics.adminReviews,
+        ok: false,
         error: error.message,
       };
     }
