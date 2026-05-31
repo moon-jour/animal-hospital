@@ -135,6 +135,22 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   });
   expect(xssResponse.status()).toBe(400);
 
+  const staleCookieResponse = await page.request.post("/api/admin/reviews", {
+    data: {
+      title: "쿠키 불일치 저장 테스트",
+      category: "테스트",
+      body: "브라우저에 예전 CSRF 쿠키가 남아도 헤더 토큰으로 저장되어야 합니다.",
+      published: false,
+    },
+    headers: { cookie: `${cookieHeader}; sams_admin_csrf=stale-token`, "x-csrf-token": csrf },
+  });
+  expect(staleCookieResponse.status()).toBe(201);
+  const staleCookieCreated = (await staleCookieResponse.json()).review;
+  const staleCookieDelete = await page.request.delete(`/api/admin/reviews/${staleCookieCreated.id}`, {
+    headers: { cookie: `${cookieHeader}; sams_admin_csrf=stale-token`, "x-csrf-token": csrf },
+  });
+  expect(staleCookieDelete.ok()).toBe(true);
+
   const createResponse = await page.request.post("/api/admin/reviews", {
     data: {
       title: "슬개골 탈구 수술 회복 사례",
