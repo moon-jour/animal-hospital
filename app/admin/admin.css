@@ -41,12 +41,130 @@ body:has(.admin-page) {
 
 .admin-panel,
 .admin-login,
+.admin-debug-panel,
 .admin-review-form,
 .admin-list article {
   border: 1px solid rgba(10, 35, 68, 0.13);
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 16px 40px rgba(10, 35, 68, 0.08);
+}
+
+.admin-debug-panel {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 28px;
+  padding: 22px;
+}
+
+.admin-debug-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-debug-heading h2 {
+  margin: 0;
+  color: #0a2344;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.admin-debug-heading p {
+  margin: 8px 0 0;
+  color: rgba(10, 35, 68, 0.64);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.admin-debug-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-debug-item {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid rgba(10, 35, 68, 0.1);
+  border-radius: 8px;
+  padding: 14px;
+  background: #f7f9fc;
+}
+
+.admin-debug-item div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-debug-item strong {
+  min-width: 0;
+  color: #0a2344;
+  font-size: 13px;
+}
+
+.admin-debug-item p {
+  margin: 0;
+  color: rgba(10, 35, 68, 0.66);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.admin-debug-status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.admin-debug-status.is-ok {
+  background: rgba(16, 118, 92, 0.12);
+  color: #10765c;
+}
+
+.admin-debug-status.is-bad {
+  background: rgba(190, 54, 54, 0.12);
+  color: #be3636;
+}
+
+.admin-debug-status.is-warn {
+  background: rgba(164, 116, 39, 0.14);
+  color: #8c621f;
+}
+
+.admin-debug-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  border-top: 1px solid rgba(10, 35, 68, 0.1);
+  padding-top: 16px;
+}
+
+.admin-debug-meta div {
+  min-width: 0;
+}
+
+.admin-debug-meta dt {
+  color: rgba(10, 35, 68, 0.52);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.admin-debug-meta dd {
+  margin: 4px 0 0;
+  color: #0a2344;
+  font-size: 12px;
+  font-weight: 850;
+  overflow-wrap: anywhere;
 }
 
 .admin-login {
@@ -493,6 +611,16 @@ body:has(.admin-page) {
 @media (max-width: 760px) {
   .admin-review-form,
   .admin-list article {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-debug-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-debug-grid,
+  .admin-debug-meta {
     grid-template-columns: 1fr;
   }
 

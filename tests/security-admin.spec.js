@@ -15,6 +15,8 @@ async function openAdmin(page) {
   await page.goto("/admin/reviews");
   await expect(page).toHaveURL(/\/admin\/reviews/);
   await expect(page.getByRole("heading", { name: "수술 후기 관리" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "관리 진단" })).toBeVisible();
+  await expect(page.getByText("CSRF API")).toBeVisible();
 
   const csrfResponse = await page.request.get("/api/admin/csrf");
   const csrfPayload = await csrfResponse.json();
@@ -37,6 +39,7 @@ test("admin pages are open for temporary testing while mutations still require C
   await page.goto("/admin/reviews");
   await expect(page).toHaveURL(/\/admin\/reviews/);
   await expect(page.getByRole("heading", { name: "수술 후기 관리" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "관리 진단" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "작성된 수술 후기" })).toBeVisible();
   await expect(page.getByLabel("입원일")).toHaveCount(0);
   await page.getByRole("button", { name: "글 추가" }).first().click();
@@ -117,6 +120,15 @@ test("login page redirects to admin while temporary auth bypass is enabled", asy
 
 test("admin review mutations validate CSRF, payloads, publish state, and author identity", async ({ page }) => {
   const { cookieHeader, csrf } = await openAdmin(page);
+
+  const debugResponse = await page.request.get("/api/admin/debug", {
+    headers: { cookie: cookieHeader, "x-csrf-token": csrf },
+  });
+  expect(debugResponse.status()).toBe(200);
+  const debugPayload = await debugResponse.json();
+  expect(debugPayload.environment.authDisabled).toBe(true);
+  expect(debugPayload.csrf.header.valid).toBe(true);
+  expect(debugPayload.storage.reviewCount).toEqual(expect.any(Number));
 
   const invalidCsrf = await page.request.post("/api/admin/reviews", {
     data: { title: "CSRF 테스트", category: "수술 후기", body: "실패해야 합니다." },

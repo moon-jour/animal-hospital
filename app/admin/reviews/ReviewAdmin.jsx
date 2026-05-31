@@ -20,13 +20,41 @@ const maxUploadBytes = 3 * 1024 * 1024;
 const maxImageEdge = 2000;
 const thumbnailSize = 960;
 const compressionQualities = [0.86, 0.78, 0.7, 0.62, 0.54, 0.46];
+const csrfCookieName = "sams_admin_csrf";
+const csrfWarningMessage = "보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.";
 
-function getCsrfToken() {
+function readCookieValue(name) {
   return document.cookie
     .split(";")
     .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith("sams_admin_csrf="))
-    ?.split("=")[1];
+    .find((entry) => entry.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+}
+
+function getCsrfToken() {
+  return readCookieValue(csrfCookieName);
+}
+
+function summarizeClientToken(token) {
+  return {
+    present: Boolean(token),
+    length: token?.length || 0,
+    prefix: token ? token.slice(0, 10) : "",
+  };
+}
+
+function clientCookieDiagnostics() {
+  const names = document.cookie
+    .split(";")
+    .map((entry) => entry.trim().split("=")[0])
+    .filter(Boolean);
+
+  return {
+    cookieHeaderPresent: Boolean(document.cookie),
+    cookieNames: Array.from(new Set(names)),
+    csrfCookieOccurrences: names.filter((name) => name === csrfCookieName).length,
+    csrfToken: summarizeClientToken(getCsrfToken()),
+  };
 }
 
 function formatBytes(bytes) {
@@ -215,6 +243,128 @@ async function createThumbnailFile(file, crop) {
   throw new Error("썸네일을 3MB 이하로 만들지 못했습니다. 다른 사진을 선택해주세요.");
 }
 
+function statusLabel(value) {
+  if (value === true) {
+    return "정상";
+  }
+
+  if (value === false) {
+    return "확인 필요";
+  }
+
+  return "확인 중";
+}
+
+function StatusBadge({ ok }) {
+  const className = ok === true ? "is-ok" : ok === false ? "is-bad" : "is-warn";
+
+  return <span className={`admin-debug-status ${className}`}>{statusLabel(ok)}</span>;
+}
+
+function DebugItem({ label, ok, children }) {
+  return (
+    <div className="admin-debug-item">
+      <div>
+        <strong>{label}</strong>
+        <StatusBadge ok={ok} />
+      </div>
+      <p>{children}</p>
+    </div>
+  );
+}
+
+function requestSummary(request) {
+  if (!request) {
+    return "아직 확인 전입니다.";
+  }
+
+  if (request.error) {
+    return `${request.label}: 실패 (${request.error})`;
+  }
+
+  return `${request.label}: HTTP ${request.status}`;
+}
+
+function DiagnosticsPanel({ diagnostics, isLoading, onRefresh }) {
+  const client = diagnostics?.client;
+  const server = diagnostics?.serverDebug?.payload;
+  const csrfApi = diagnostics?.csrfApi;
+  const adminReviews = diagnostics?.adminReviews;
+  const csrfResponseOk = csrfApi?.ok === true && client?.after?.csrfToken.present;
+  const debugResponseOk = diagnostics?.serverDebug?.ok === true;
+  const dbOk = server?.storage?.databaseReachable;
+  const serverHeaderOk = server?.csrf?.header.valid;
+  const serverCookieOk = server?.csrf?.cookie.valid;
+  const reviewFetchOk = adminReviews?.ok === true;
+
+  return (
+    <section className="admin-debug-panel" aria-label="관리 진단">
+      <div className="admin-debug-heading">
+        <div>
+          <h2>관리 진단</h2>
+          <p>현재 브라우저 쿠키, CSRF 발급, 서버 검증, DB 조회 상태를 함께 확인합니다.</p>
+        </div>
+        <button className="admin-button is-secondary" disabled={isLoading} onClick={onRefresh} type="button">
+          {isLoading ? "확인 중" : "진단 새로고침"}
+        </button>
+      </div>
+
+      <div className="admin-debug-grid">
+        <DebugItem label="브라우저 CSRF 쿠키" ok={client?.after?.csrfToken.present}>
+          {client?.after?.csrfToken.present
+            ? `${client.after.csrfCookieOccurrences}개 감지 · ${client.after.csrfToken.length}자 · ${client.after.csrfToken.prefix}...`
+            : "현재 탭에서 CSRF 쿠키를 읽지 못했습니다."}
+        </DebugItem>
+        <DebugItem label="CSRF API" ok={csrfResponseOk}>
+          {requestSummary(csrfApi)}
+          {csrfApi?.token?.present ? ` · ${csrfApi.token.length}자 · ${csrfApi.token.prefix}...` : ""}
+        </DebugItem>
+        <DebugItem label="서버 CSRF 헤더" ok={serverHeaderOk}>
+          {debugResponseOk
+            ? server?.csrf?.header.present
+              ? `${server.csrf.header.length}자 · ${server.csrf.header.prefix}... · 서버 검증 ${server.csrf.header.valid ? "통과" : "실패"}`
+              : "서버가 x-csrf-token 헤더를 받지 못했습니다."
+            : requestSummary(diagnostics?.serverDebug)}
+        </DebugItem>
+        <DebugItem label="서버 CSRF 쿠키" ok={serverCookieOk}>
+          {debugResponseOk
+            ? `${server.csrf.csrfCookieOccurrences}개 감지 · ${server.csrf.cookie.present ? `${server.csrf.cookie.length}자 · ${server.csrf.cookie.prefix}...` : "쿠키 없음"}`
+            : requestSummary(diagnostics?.serverDebug)}
+        </DebugItem>
+        <DebugItem label="관리 API 목록" ok={reviewFetchOk}>
+          {reviewFetchOk ? `수술 후기 ${adminReviews.count}개 조회됨` : requestSummary(adminReviews)}
+        </DebugItem>
+        <DebugItem label="DB 연결" ok={dbOk}>
+          {debugResponseOk
+            ? dbOk
+              ? `DB 조회 가능 · 서버 기준 ${server.storage.reviewCount}개`
+              : `DB 오류: ${server.storage.databaseError}`
+            : requestSummary(diagnostics?.serverDebug)}
+        </DebugItem>
+      </div>
+
+      <dl className="admin-debug-meta">
+        <div>
+          <dt>확인 시각</dt>
+          <dd>{diagnostics?.checkedAt || "대기 중"}</dd>
+        </div>
+        <div>
+          <dt>관리자</dt>
+          <dd>{server?.admin?.email || "확인 전"}</dd>
+        </div>
+        <div>
+          <dt>인증 우회</dt>
+          <dd>{server?.environment ? (server.environment.authDisabled ? "켜짐" : "꺼짐") : "확인 전"}</dd>
+        </div>
+        <div>
+          <dt>Blob 설정</dt>
+          <dd>{server?.environment ? (server.environment.blobConfigured ? "있음" : "없음") : "확인 전"}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
 export default function ReviewAdmin({ initialReviews, adminEmail }) {
   const [reviews, setReviews] = useState(initialReviews);
   const [form, setForm] = useState(emptyForm);
@@ -228,6 +378,8 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
   const [filePreviews, setFilePreviews] = useState([]);
   const [message, setMessage] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
+  const [diagnostics, setDiagnostics] = useState(null);
+  const [isDiagnosticsLoading, setIsDiagnosticsLoading] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const cropStageRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -246,7 +398,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
         return cookieToken;
       }
 
-      throw new Error("보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.");
+      throw new Error(csrfWarningMessage);
     }
 
     setCsrfToken(payload.csrfToken);
@@ -277,6 +429,107 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     }
 
     return response;
+  };
+
+  const refreshDiagnostics = async () => {
+    setIsDiagnosticsLoading(true);
+
+    const nextDiagnostics = {
+      checkedAt: new Date().toLocaleString("ko-KR"),
+      client: {
+        before: clientCookieDiagnostics(),
+      },
+      csrfApi: {
+        label: "/api/admin/csrf",
+        ok: false,
+        status: 0,
+        token: summarizeClientToken(""),
+      },
+      serverDebug: {
+        label: "/api/admin/debug",
+        ok: false,
+        status: 0,
+      },
+      adminReviews: {
+        label: "/api/admin/reviews",
+        ok: false,
+        status: 0,
+        count: 0,
+      },
+    };
+
+    let token = getCsrfToken() || csrfToken || "";
+
+    try {
+      const response = await fetch("/api/admin/csrf", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      nextDiagnostics.csrfApi = {
+        ...nextDiagnostics.csrfApi,
+        ok: response.ok && Boolean(payload.csrfToken),
+        status: response.status,
+        token: summarizeClientToken(payload.csrfToken),
+      };
+
+      if (payload.csrfToken) {
+        token = payload.csrfToken;
+        setCsrfToken(payload.csrfToken);
+      }
+    } catch (error) {
+      nextDiagnostics.csrfApi = {
+        ...nextDiagnostics.csrfApi,
+        error: error.message,
+      };
+    }
+
+    nextDiagnostics.client.after = clientCookieDiagnostics();
+
+    try {
+      const response = await fetch("/api/admin/debug", {
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: token ? { "x-csrf-token": token } : {},
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      nextDiagnostics.serverDebug = {
+        ...nextDiagnostics.serverDebug,
+        ok: response.ok,
+        status: response.status,
+        payload,
+      };
+    } catch (error) {
+      nextDiagnostics.serverDebug = {
+        ...nextDiagnostics.serverDebug,
+        error: error.message,
+      };
+    }
+
+    try {
+      const response = await fetch("/api/admin/reviews", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      nextDiagnostics.adminReviews = {
+        ...nextDiagnostics.adminReviews,
+        ok: response.ok && Array.isArray(payload.reviews),
+        status: response.status,
+        count: Array.isArray(payload.reviews) ? payload.reviews.length : 0,
+      };
+    } catch (error) {
+      nextDiagnostics.adminReviews = {
+        ...nextDiagnostics.adminReviews,
+        error: error.message,
+      };
+    }
+
+    setDiagnostics(nextDiagnostics);
+    setIsDiagnosticsLoading(false);
   };
 
   useEffect(() => {
@@ -315,13 +568,14 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
         .then((payload) => {
           if (isMounted && Array.isArray(payload?.reviews)) {
             setReviews(payload.reviews);
-            setMessage((current) => (current === "보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요." ? "" : current));
+            setMessage((current) => (current === csrfWarningMessage ? "" : current));
           }
         }),
     ]).catch(() => {
       // Mutating requests refresh and validate CSRF again. Avoid leaving a stale
       // page-level warning on long-lived admin tabs when the initial warm-up fails.
     });
+    refreshDiagnostics();
 
     return () => {
       isMounted = false;
@@ -624,6 +878,8 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
             </button>
           </div>
         </div>
+
+        <DiagnosticsPanel diagnostics={diagnostics} isLoading={isDiagnosticsLoading} onRefresh={refreshDiagnostics} />
 
         {isEditorOpen ? (
           <form className="admin-review-form" onSubmit={saveReview}>
