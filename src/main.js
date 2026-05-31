@@ -14,6 +14,107 @@ const heroForegroundImageUrl = imageUrl("hero-care-team.png");
 const logoImageUrl = imageUrl("hospital-symbol.jpeg");
 const hongDoctorImageUrl = imageUrl("doctor-hong-card.png");
 const kimDoctorImageUrl = imageUrl("doctor-kim-card.png");
+const primaryMenuItems = [
+  {
+    label: "병원소개",
+    href: "#about",
+    subItems: [
+      { label: "미션/비전", href: "#about" },
+      { label: "의료진소개", href: "#doctors" },
+      { label: "병원둘러보기", href: "#space" },
+      { label: "진료시간/오시는길", href: "#hours" },
+    ],
+  },
+  {
+    label: "외과센터",
+    href: "#services",
+    subItems: [
+      { label: "외과 수술", href: "#services" },
+      { label: "슬개골탈구", href: "#services" },
+      { label: "십자인대", href: "#services" },
+      { label: "골절", href: "#services" },
+    ],
+  },
+  {
+    label: "영상진단센터",
+    href: "#space",
+    subItems: [
+      { label: "영상 장비", href: "#space" },
+      { label: "CT", href: "#space" },
+      { label: "초음파", href: "#space" },
+    ],
+  },
+  {
+    label: "재활센터",
+    href: "#services",
+    subItems: [
+      { label: "재활 치료", href: "#services" },
+      { label: "레이저치료", href: "#services" },
+      { label: "회복 관리", href: "#services" },
+    ],
+  },
+  {
+    label: "진료안내",
+    href: "#hours",
+    subItems: [
+      { label: "24시간 진료", href: "#hours" },
+      { label: "야간 응급", href: "#hours" },
+      { label: "내원 안내", href: "#contact" },
+    ],
+  },
+  {
+    label: "커뮤니티",
+    href: "#contact",
+    subItems: [
+      { label: "공지사항", href: "#contact" },
+      { label: "상담 문의", href: "#contact" },
+    ],
+  },
+];
+const sectionMenuItems = [
+  { label: "병원소개", href: "#about" },
+  { label: "시설소개", href: "#space" },
+  { label: "진료안내", href: "#hours" },
+  { label: "의료진", href: "#doctors" },
+  { label: "진료과목", href: "#services" },
+];
+const menuSubItemMarkup = (items) =>
+  items.map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`).join("");
+const primaryMenuMarkup = primaryMenuItems
+  .map(
+    ({ label, href, subItems }) => `
+      <li>
+        <a href="${href}"><span>${label}</span></a>
+        <ul class="sub-menu">
+          ${menuSubItemMarkup(subItems)}
+        </ul>
+      </li>
+    `,
+  )
+  .join("");
+const globalMenuMarkup = primaryMenuItems
+  .map(
+    ({ label, href, subItems }) => `
+      <li>
+        <a class="global-menu__title" href="${href}">${label}</a>
+        <ul>
+          ${menuSubItemMarkup(subItems)}
+        </ul>
+      </li>
+    `,
+  )
+  .join("");
+const sectionMenuMarkup = sectionMenuItems
+  .map(
+    ({ label, href }) => `
+      <li>
+        <a href="${href}" data-section-menu-link>
+          <span>${label}</span>
+        </a>
+      </li>
+    `,
+  )
+  .join("");
 const facilitySlides = [
   {
     filename: "facility-01.jpg",
@@ -95,14 +196,49 @@ document.querySelector("#app").innerHTML = `
         <small>${hospital.englishName}</small>
       </span>
     </a>
-    <nav class="nav-links" aria-label="주요 섹션">
-      <a href="#about"><span>병원소개</span></a>
-      <a href="#space"><span>시설소개</span></a>
-      <a href="#hours"><span>진료안내</span></a>
-      <a href="#doctors"><span>의료진</span></a>
+    <nav class="nav-links" aria-label="주요 메뉴">
+      <ul>
+        ${primaryMenuMarkup}
+      </ul>
     </nav>
-    <a class="header-cta" href="#contact">문의</a>
+    <div class="header-actions">
+      <a class="header-call" href="tel:${hospital.phone.replaceAll("-", "")}" aria-label="전화 문의 ${hospital.phone}">
+        <span aria-hidden="true">☎</span>
+        <strong>${hospital.phone}</strong>
+      </a>
+      <button class="menu-button" type="button" aria-label="전체 메뉴 열기" aria-expanded="false" aria-controls="global-menu">
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </header>
+
+  <aside class="section-menu is-hidden" aria-label="메인 섹션 목차">
+    <ul>
+      ${sectionMenuMarkup}
+    </ul>
+  </aside>
+
+  <div class="global-menu" id="global-menu" aria-hidden="true">
+    <div class="global-menu__header">
+      <a class="global-menu__call" href="tel:${hospital.phone.replaceAll("-", "")}">
+        <span aria-hidden="true">☎</span>
+        <strong>${hospital.phone}</strong>
+      </a>
+      <a class="global-menu__brand" href="#top" aria-label="${hospital.name} 홈">
+        <span class="brand-mark">
+          <img src="${logoImageUrl}" alt="" />
+        </span>
+        <strong>${hospital.name}</strong>
+      </a>
+      <button class="global-menu__close" type="button" aria-label="전체 메뉴 닫기"></button>
+    </div>
+    <nav class="global-menu__nav" aria-label="전체 메뉴">
+      <ul>
+        ${globalMenuMarkup}
+      </ul>
+    </nav>
+  </div>
 
   <main id="top" class="snap-root" style="--hero-background-image: url('${heroBackgroundImageUrl}')">
     <section class="hero snap-panel reveal-section is-visible" aria-label="병원 메인 이미지" data-reveal-section>
@@ -296,19 +432,8 @@ document.querySelector("#app").innerHTML = `
           <div class="section-kicker">24H VETERINARY TEAM</div>
           <h2>두 대표원장이 책임 진료합니다.</h2>
         </div>
-        <p>응급, 외과, 내과, 회복 관리까지 함께 살핍니다.</p>
       </div>
       <div class="doctor-showcase" aria-label="대표원장 소개">
-        <article class="doctor-profile-card">
-          <figure>
-            <img src="${hongDoctorImageUrl}" alt="홍정호 대표원장" />
-          </figure>
-          <div>
-            <p class="role">대표원장</p>
-            <h3>홍정호 대표원장</h3>
-            <strong>대학병원 출신 수의사</strong>
-          </div>
-        </article>
         <article class="doctor-profile-card">
           <figure>
             <img src="${kimDoctorImageUrl}" alt="김민연 대표원장" />
@@ -316,13 +441,21 @@ document.querySelector("#app").innerHTML = `
           <div>
             <p class="role">대표원장</p>
             <h3>김민연 대표원장</h3>
-            <strong>대학병원 출신 수의사</strong>
+          </div>
+        </article>
+        <article class="doctor-profile-card">
+          <figure>
+            <img src="${hongDoctorImageUrl}" alt="홍정호 대표원장" />
+          </figure>
+          <div>
+            <p class="role">대표원장</p>
+            <h3>홍정호 대표원장</h3>
           </div>
         </article>
       </div>
     </section>
 
-    <section class="section services snap-panel reveal-section" aria-label="진료 과목" data-reveal-section>
+    <section class="section services snap-panel reveal-section" id="services" aria-label="진료 과목" data-reveal-section>
       <div class="section-kicker">24H MEDICAL SERVICE</div>
       <div class="section-heading">
         <h2>수술, 재활, 내과, 응급 진료까지 한 곳에서 이어집니다.</h2>
@@ -388,6 +521,12 @@ const scrollRoot = document.querySelector(".snap-root");
 const scrollTopButton = document.querySelector(".scroll-top-button");
 const revealSections = Array.from(document.querySelectorAll("[data-reveal-section]"));
 const snapPanels = Array.from(document.querySelectorAll(".snap-panel"));
+const siteHeader = document.querySelector(".site-header");
+const sectionMenu = document.querySelector(".section-menu");
+const sectionMenuLinks = Array.from(document.querySelectorAll("[data-section-menu-link]"));
+const menuButton = document.querySelector(".menu-button");
+const globalMenu = document.querySelector(".global-menu");
+const globalMenuCloseButton = document.querySelector(".global-menu__close");
 const SNAP_SCROLL_DURATION = 940;
 const SNAP_SETTLE_LOCK_MS = 220;
 const WHEEL_DELTA_THRESHOLD = 360;
@@ -480,7 +619,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
   if (reducedMotionQuery.matches || behavior === "auto") {
     scrollRoot.scrollTo({ top: nextTop, behavior: "auto" });
     resetScrollGestureState({ resetTouch: true });
-    updateScrollTopButton();
+    updateScrollState();
     return;
   }
 
@@ -490,7 +629,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
   if (Math.abs(distance) < 1) {
     scrollRoot.scrollTop = nextTop;
     resetScrollGestureState({ resetTouch: true });
-    updateScrollTopButton();
+    updateScrollState();
     return;
   }
 
@@ -514,7 +653,7 @@ const scrollToTopPosition = (targetTop, behavior = "smooth") => {
     scrollAnimationFrame = 0;
     resetScrollGestureState({ resetTouch: true });
     scrollInputLockedUntil = performance.now() + SNAP_SETTLE_LOCK_MS;
-    updateScrollTopButton();
+    updateScrollState();
   };
 
   scrollAnimationFrame = window.requestAnimationFrame(step);
@@ -559,8 +698,71 @@ const updateScrollTopButton = () => {
   scrollTopButton.classList.toggle("is-at-top", (scrollRoot?.scrollTop ?? 0) <= 8);
 };
 
-scrollRoot?.addEventListener("scroll", updateScrollTopButton, { passive: true });
-updateScrollTopButton();
+const getActivePanelIndex = () => {
+  if (!scrollRoot || snapPanels.length === 0) {
+    return 0;
+  }
+
+  return clamp(
+    Math.round(scrollRoot.scrollTop / Math.max(1, scrollRoot.clientHeight)),
+    0,
+    snapPanels.length - 1,
+  );
+};
+
+const updateSectionNavigation = () => {
+  const activeIndex = getActivePanelIndex();
+  const activePanel = snapPanels[activeIndex];
+  const activePanelId = activePanel?.id ? `#${activePanel.id}` : "";
+  const shouldHideSectionMenu = activeIndex === 0 || !sectionMenuLinks.some((link) => link.hash === activePanelId);
+  const shouldUseDarkHeader = Boolean(activePanel?.matches(".intro, .services"));
+
+  sectionMenu?.classList.toggle("is-hidden", shouldHideSectionMenu);
+  sectionMenu?.classList.toggle("is-on-light", shouldUseDarkHeader);
+  siteHeader?.classList.toggle("is-dark", shouldUseDarkHeader);
+
+  for (const link of sectionMenuLinks) {
+    const isActive = link.hash === activePanelId;
+
+    link.parentElement?.classList.toggle("is-active", isActive);
+    link.toggleAttribute("aria-current", isActive);
+  }
+};
+
+const updateScrollState = () => {
+  updateScrollTopButton();
+  updateSectionNavigation();
+};
+
+const openGlobalMenu = () => {
+  globalMenu?.classList.add("is-active");
+  globalMenu?.setAttribute("aria-hidden", "false");
+  menuButton?.setAttribute("aria-expanded", "true");
+};
+
+const closeGlobalMenu = () => {
+  globalMenu?.classList.remove("is-active");
+  globalMenu?.setAttribute("aria-hidden", "true");
+  menuButton?.setAttribute("aria-expanded", "false");
+};
+
+menuButton?.addEventListener("click", openGlobalMenu);
+globalMenuCloseButton?.addEventListener("click", closeGlobalMenu);
+
+globalMenu?.addEventListener("click", (event) => {
+  if (event.target === globalMenu || event.target.closest('a[href^="#"]')) {
+    closeGlobalMenu();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && globalMenu?.classList.contains("is-active")) {
+    closeGlobalMenu();
+  }
+});
+
+scrollRoot?.addEventListener("scroll", updateScrollState, { passive: true });
+updateScrollState();
 
 scrollRoot?.addEventListener(
   "wheel",
@@ -730,7 +932,7 @@ const goToPageTop = () => {
 
   lastTopRequest = now;
   scrollToTarget(scrollRoot);
-  window.setTimeout(updateScrollTopButton, reducedMotionQuery.matches ? 0 : 620);
+  window.setTimeout(updateScrollState, reducedMotionQuery.matches ? 0 : 620);
 };
 
 const handleTopButtonRequest = (event) => {

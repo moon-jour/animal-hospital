@@ -130,6 +130,9 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
       headerHeight: Math.round(header.getBoundingClientRect().height),
       headerPosition: getComputedStyle(header).position,
       heroTop: Math.round(heroRect.top),
+      navLabels: Array.from(header.querySelectorAll(".nav-links > ul > li > a")).map((link) =>
+        link.textContent.trim(),
+      ),
       rootHeight: Math.round(scrollRoot.getBoundingClientRect().height),
       viewportHeight: window.innerHeight,
       panelHeights: panels.map((panel) => Math.round(panel.getBoundingClientRect().height)),
@@ -138,15 +141,104 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
 
   expect(measurements.brandMarkOpacity).toBe("1");
   expect(measurements.headerBackdropFilter).toBe("none");
-  expect(measurements.headerBackground).toBe("rgba(1, 62, 106, 0.68)");
+  expect(measurements.headerBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(measurements.headerHeight).toBe(100);
   expect(measurements.headerPosition).toBe("fixed");
   expect(measurements.heroTop).toBe(0);
   expect(measurements.headerBottom).toBeGreaterThan(measurements.heroTop);
+  expect(measurements.navLabels).toEqual([
+    "병원소개",
+    "외과센터",
+    "영상진단센터",
+    "재활센터",
+    "진료안내",
+    "커뮤니티",
+  ]);
   expect(measurements.rootHeight).toBe(measurements.viewportHeight);
   expect(measurements.panelHeights.length).toBeGreaterThan(4);
   for (const panelHeight of measurements.panelHeights) {
     expect(panelHeight).toBe(measurements.rootHeight);
   }
+});
+
+test("header dropdown, full menu, and left section menu follow the reference layout", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+
+  await page.hover(".nav-links > ul > li:first-child > a");
+  await page.waitForTimeout(320);
+
+  const hoverMenu = await page.evaluate(() => {
+    const submenu = document.querySelector(".nav-links > ul > li:first-child .sub-menu");
+    const submenuStyle = getComputedStyle(submenu);
+
+    return {
+      background: submenuStyle.backgroundColor,
+      borderRadius: submenuStyle.borderRadius,
+      labels: Array.from(submenu.querySelectorAll("a")).map((link) => link.textContent.trim()),
+      opacity: submenuStyle.opacity,
+      visibility: submenuStyle.visibility,
+    };
+  });
+
+  expect(hoverMenu.background).toBe("rgb(250, 250, 250)");
+  expect(hoverMenu.borderRadius).toBe("10px");
+  expect(hoverMenu.labels).toEqual(["미션/비전", "의료진소개", "병원둘러보기", "진료시간/오시는길"]);
+  expect(hoverMenu.opacity).toBe("1");
+  expect(hoverMenu.visibility).toBe("visible");
+
+  await page.click(".menu-button");
+  await page.waitForTimeout(700);
+
+  const globalMenu = await page.evaluate(() => {
+    const menu = document.querySelector(".global-menu");
+    const menuStyle = getComputedStyle(menu);
+
+    return {
+      ariaHidden: menu.getAttribute("aria-hidden"),
+      className: menu.className,
+      firstRow: menu.querySelector(".global-menu__title").textContent.trim(),
+      height: Math.round(menu.getBoundingClientRect().height),
+      position: menuStyle.position,
+      rowCount: menu.querySelectorAll(".global-menu__nav > ul > li").length,
+    };
+  });
+
+  expect(globalMenu.ariaHidden).toBe("false");
+  expect(globalMenu.className).toContain("is-active");
+  expect(globalMenu.firstRow).toBe("병원소개");
+  expect(globalMenu.height).toBe(900);
+  expect(globalMenu.position).toBe("fixed");
+  expect(globalMenu.rowCount).toBe(6);
+
+  await page.click(".global-menu__close");
+  await page.waitForTimeout(700);
+
+  const scrollRoot = page.locator("main#top");
+  await scrollRoot.evaluate((root) => root.scrollTo({ top: root.clientHeight, behavior: "auto" }));
+  await page.waitForTimeout(760);
+
+  const sectionMenu = await page.evaluate(() => {
+    const menu = document.querySelector(".section-menu");
+    const activeLink = menu.querySelector("li.is-active a");
+    const header = document.querySelector(".site-header");
+
+    return {
+      activeText: activeLink?.textContent.trim(),
+      headerBackground: getComputedStyle(header).backgroundColor,
+      headerClassName: header.className,
+      menuClassName: menu.className,
+      menuLeft: getComputedStyle(menu).left,
+      labels: Array.from(menu.querySelectorAll("a")).map((link) => link.textContent.trim()),
+    };
+  });
+
+  expect(sectionMenu.activeText).toBe("병원소개");
+  expect(sectionMenu.headerBackground).toBe("rgba(255, 255, 255, 0.72)");
+  expect(sectionMenu.headerClassName).toContain("is-dark");
+  expect(sectionMenu.menuClassName).not.toContain("is-hidden");
+  expect(sectionMenu.menuLeft).toBe("0px");
+  expect(sectionMenu.labels).toEqual(["병원소개", "시설소개", "진료안내", "의료진", "진료과목"]);
 });
 
 test("reveal sections fade in slowly every time they are entered from either direction", async ({ page }) => {
@@ -235,9 +327,10 @@ test("doctor cards prioritize large portraits with concise text", async ({ page 
       headingText: heading.textContent.trim(),
       imageFit: getComputedStyle(firstImage).objectFit,
       imagePosition: getComputedStyle(firstImage).objectPosition,
+      names: cards.map((card) => card.querySelector("h3")?.textContent.trim()),
       roles: cards.map((card) => card.querySelector(".role")?.textContent.trim()),
-      strongTexts: cards.map((card) => card.querySelector("strong")?.textContent.trim()),
-      summaryText: summary.textContent.trim(),
+      strongCount: document.querySelectorAll(".doctor-profile-card strong").length,
+      summaryText: summary?.textContent.trim() ?? "",
     };
   });
 
@@ -247,11 +340,12 @@ test("doctor cards prioritize large portraits with concise text", async ({ page 
   expect(desktopDoctors.figureBackground).toBe("rgb(238, 241, 236)");
   expect(desktopDoctors.figureHeight).toBeGreaterThan(290);
   expect(desktopDoctors.headingText).toBe("두 대표원장이 책임 진료합니다.");
-  expect(desktopDoctors.summaryText).toBe("응급, 외과, 내과, 회복 관리까지 함께 살핍니다.");
+  expect(desktopDoctors.summaryText).toBe("");
   expect(desktopDoctors.imageFit).toBe("contain");
   expect(desktopDoctors.imagePosition).toBe("50% 100%");
+  expect(desktopDoctors.names).toEqual(["김민연 대표원장", "홍정호 대표원장"]);
   expect(desktopDoctors.roles).toEqual(["대표원장", "대표원장"]);
-  expect(desktopDoctors.strongTexts).toEqual(["대학병원 출신 수의사", "대학병원 출신 수의사"]);
+  expect(desktopDoctors.strongCount).toBe(0);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
