@@ -105,6 +105,28 @@ function formatDate(value) {
   return value.replaceAll("-", ".");
 }
 
+function formatCreatedDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+  })
+    .format(date)
+    .replaceAll(" ", "")
+    .replace(/\.$/, "");
+}
+
 function dateRangeText(review) {
   if (review.admissionDate && review.dischargeDate) {
     return `${formatDate(review.admissionDate)} - ${formatDate(review.dischargeDate)}`;
@@ -1038,6 +1060,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
                 <p>
                   {review.category}
                   {review.breed ? ` · ${review.breed}` : ""} · {review.published ? "공개" : "임시저장"}
+                  {formatCreatedDate(review.createdAt) ? ` · 작성일 ${formatCreatedDate(review.createdAt)}` : ""}
                   {dateRangeText(review) ? ` · ${dateRangeText(review)}` : ""}
                 </p>
               </div>

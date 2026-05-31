@@ -478,6 +478,12 @@ body.is-menu-page-active .site-header.is-dark {
   color: #00a99d;
 }
 
+.global-menu__title[href="/reviews"],
+.global-menu__title[href="/reviews"]:hover,
+.global-menu__nav > ul > li:focus-within .global-menu__title[href="/reviews"] {
+  color: #f4d35e;
+}
+
 .global-menu__nav ul ul {
   display: flex;
   flex-wrap: wrap;

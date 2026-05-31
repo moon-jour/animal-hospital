@@ -88,6 +88,7 @@ test("admin pages are open for temporary testing while mutations still require C
   await page.locator("form").getByRole("button", { name: "저장" }).click();
   await expect(page.getByText("수술 후기를 저장했습니다.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "CSRF 자동 갱신 테스트" })).toBeVisible();
+  await expect(page.getByText(/작성일 \d{4}\.\d{2}\.\d{2}/)).toBeVisible();
 
   const adminReviews = await (await page.request.get("/api/admin/reviews")).json();
   const uiCreatedReview = adminReviews.reviews.find((review) => review.title === "CSRF 자동 갱신 테스트");
@@ -224,12 +225,16 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   await expect(page.getByText("관리자가 직접 정리한 수술 사례와 회복 과정을 공개된 후기만 모아 보여드립니다.")).toHaveCount(0);
   const reviewsLayout = await page.evaluate(() => {
     const header = document.querySelector(".reviews-header")?.getBoundingClientRect();
+    const brand = document.querySelector(".reviews-brand");
+    const brandSmall = document.querySelector(".reviews-brand small");
     const title = document.querySelector(".reviews-main h1");
     const activeReviewLink = document.querySelector(".reviews-nav a.is-active");
     const surgerySelect = document.querySelector(".reviews-toolbar select");
 
     return {
       bodyOverflowY: getComputedStyle(document.body).overflowY,
+      brandFontWeight: getComputedStyle(brand).fontWeight,
+      brandSmallFontWeight: getComputedStyle(brandSmall).fontWeight,
       headerBackground: getComputedStyle(document.querySelector(".reviews-header")).backgroundColor,
       headerHeight: Math.round(header?.height || 0),
       reviewLinkColor: getComputedStyle(activeReviewLink).color,
@@ -238,6 +243,8 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
     };
   });
   expect(reviewsLayout.bodyOverflowY).toBe("auto");
+  expect(reviewsLayout.brandFontWeight).toBe("400");
+  expect(reviewsLayout.brandSmallFontWeight).toBe("400");
   expect(reviewsLayout.headerBackground).toBe("rgb(1, 62, 106)");
   expect(reviewsLayout.headerHeight).toBeGreaterThanOrEqual(96);
   expect(reviewsLayout.reviewLinkColor).toBe("rgb(244, 211, 94)");

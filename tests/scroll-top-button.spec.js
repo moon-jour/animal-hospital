@@ -279,6 +279,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
       height: Math.round(menu.getBoundingClientRect().height),
       phone: menu.querySelector(".global-menu__call strong").textContent.trim(),
       position: menuStyle.position,
+      reviewTitleColor: getComputedStyle(menu.querySelector('.global-menu__title[href="/reviews"]')).color,
       rowCount: menu.querySelectorAll(".global-menu__nav > ul > li").length,
     };
   });
@@ -289,6 +290,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   expect(globalMenu.height).toBe(900);
   expect(globalMenu.phone).toBe("051)710-6555");
   expect(globalMenu.position).toBe("fixed");
+  expect(globalMenu.reviewTitleColor).toBe("rgb(244, 211, 94)");
   expect(globalMenu.rowCount).toBe(7);
 
   await page.click(".global-menu__close");
