@@ -240,6 +240,12 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok || !payload.csrfToken) {
+      const cookieToken = getCsrfToken();
+
+      if (cookieToken) {
+        return cookieToken;
+      }
+
       throw new Error("보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.");
     }
 
@@ -258,7 +264,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
           "x-csrf-token": token,
         },
       });
-    let token = csrfToken || getCsrfToken() || (await refreshCsrfToken());
+    let token = getCsrfToken() || csrfToken || (await refreshCsrfToken());
     let response = await makeRequest(token);
 
     if (response.status === 403) {
