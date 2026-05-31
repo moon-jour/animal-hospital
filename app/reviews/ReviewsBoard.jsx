@@ -34,7 +34,7 @@ function dateRangeText(review) {
 }
 
 function reviewThumbnail(review) {
-  return Array.isArray(review.imageUrls) && review.imageUrls.length > 0 ? review.imageUrls[0] : review.coverImageUrl;
+  return review.coverImageUrl || (Array.isArray(review.imageUrls) && review.imageUrls.length > 0 ? review.imageUrls[0] : "");
 }
 
 export default function ReviewsBoard({ reviews }) {

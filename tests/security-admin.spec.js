@@ -44,6 +44,12 @@ test("admin pages are open for temporary testing while mutations still require C
   expect(await page.getByText("대표 이미지 설명").count()).toBe(0);
   await expect(page.locator(".admin-image-field input[type='file']")).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
   await expect(page.locator(".admin-image-field input[type='file']")).toHaveAttribute("multiple", "");
+  await page.locator(".admin-image-field input[type='file']").setInputFiles(path.join(process.cwd(), "public/images/facility-01.jpg"));
+  await expect(page.getByRole("dialog", { name: "썸네일 편집" })).toBeVisible();
+  await expect(page.getByAltText("썸네일로 자를 원본 이미지")).toBeVisible();
+  await expect(page.getByAltText("정사각형 썸네일 미리보기")).toBeVisible();
+  await page.getByRole("button", { name: "영역 적용" }).click();
+  await expect(page.getByRole("dialog", { name: "썸네일 편집" })).toHaveCount(0);
 
   const adminLayout = await page.evaluate(() => {
     const dateLabels = Array.from(document.querySelectorAll(".admin-date-row label")).map((label) =>
@@ -110,6 +116,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
       dischargeDate: "2026-05-05",
       body: "관리자가 직접 작성한 공개 전 임시저장 후기입니다.",
       imageUrls: ["/images/facility-01.jpg", "/images/facility-02.jpg"],
+      coverImageUrl: "/images/facility-10.jpg",
       authorEmail: "attacker@example.com",
       isAdmin: true,
       published: false,
@@ -125,7 +132,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   expect(created.admissionDate).toBe("2026-05-01");
   expect(created.dischargeDate).toBe("2026-05-05");
   expect(created.imageUrls).toEqual(["/images/facility-01.jpg", "/images/facility-02.jpg"]);
-  expect(created.coverImageUrl).toBe("/images/facility-01.jpg");
+  expect(created.coverImageUrl).toBe("/images/facility-10.jpg");
 
   const publicDrafts = await page.request.get("/api/reviews");
   expect((await publicDrafts.json()).reviews.map((review) => review.id)).not.toContain(created.id);
@@ -139,6 +146,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
       dischargeDate: created.dischargeDate,
       body: "공개된 수술 후기입니다.",
       imageUrls: created.imageUrls,
+      coverImageUrl: created.coverImageUrl,
       published: true,
     },
     headers: { cookie: cookieHeader, "x-csrf-token": csrf },

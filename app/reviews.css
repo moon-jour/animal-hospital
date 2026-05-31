@@ -146,7 +146,7 @@
 .review-card__thumb {
   display: grid;
   width: 100%;
-  height: 210px;
+  aspect-ratio: 1;
   place-items: center;
   background: #000000;
 }
