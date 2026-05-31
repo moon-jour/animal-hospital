@@ -303,10 +303,29 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
   }, [files]);
 
   useEffect(() => {
-    refreshCsrfToken().catch(() => {
+    let isMounted = true;
+
+    Promise.allSettled([
+      refreshCsrfToken(),
+      fetch("/api/admin/reviews", {
+        cache: "no-store",
+        credentials: "same-origin",
+      })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((payload) => {
+          if (isMounted && Array.isArray(payload?.reviews)) {
+            setReviews(payload.reviews);
+            setMessage((current) => (current === "보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요." ? "" : current));
+          }
+        }),
+    ]).catch(() => {
       // Mutating requests refresh and validate CSRF again. Avoid leaving a stale
       // page-level warning on long-lived admin tabs when the initial warm-up fails.
     });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const sortedReviews = useMemo(
