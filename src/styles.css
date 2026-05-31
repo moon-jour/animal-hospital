@@ -143,6 +143,11 @@ img {
   background: rgba(var(--brand-navy-rgb), 0.78);
 }
 
+body.is-menu-page-active .site-header,
+body.is-menu-page-active .site-header.is-dark {
+  background: rgb(var(--brand-navy-rgb));
+}
+
 .brand {
   display: inline-flex;
   align-items: center;

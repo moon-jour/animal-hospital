@@ -230,6 +230,8 @@ test("header dropdown, full menu, and left section menu follow the reference lay
       activePanelId: activePanel?.id,
       activePanelHeight: Math.round(activePanel?.getBoundingClientRect().height ?? 0),
       activeSubNavText: activeLink?.textContent.trim(),
+      bodyMenuPageActive: document.body.classList.contains("is-menu-page-active"),
+      headerBackground: getComputedStyle(document.querySelector(".site-header")).backgroundColor,
       locationHash: window.location.hash,
       menuPageActive: menuPage.classList.contains("is-active"),
       menuPageAriaHidden: menuPage.getAttribute("aria-hidden"),
@@ -245,6 +247,8 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   expect(clickedDropdown.activePanelId).toBe("menu-about-mission");
   expect(clickedDropdown.activePanelHeight).toBe(800);
   expect(clickedDropdown.activeSubNavText).toContain("미션/비전");
+  expect(clickedDropdown.bodyMenuPageActive).toBe(true);
+  expect(clickedDropdown.headerBackground).toBe("rgb(1, 62, 106)");
   expect(clickedDropdown.locationHash).toBe("#menu-about-mission");
   expect(clickedDropdown.menuPageActive).toBe(true);
   expect(clickedDropdown.menuPageAriaHidden).toBe("false");
