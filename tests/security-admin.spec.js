@@ -37,19 +37,27 @@ test("admin pages are open for temporary testing while mutations still require C
   await page.goto("/admin/reviews");
   await expect(page).toHaveURL(/\/admin\/reviews/);
   await expect(page.getByRole("heading", { name: "수술 후기 관리" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "작성된 수술 후기" })).toBeVisible();
+  await expect(page.getByLabel("입원일")).toHaveCount(0);
+  await page.getByRole("button", { name: "글 추가" }).first().click();
+  await expect(page.getByRole("heading", { name: "새 수술 후기 작성" })).toBeVisible();
   await expect(page.getByLabel("입원일")).toHaveAttribute("type", "date");
   await expect(page.getByLabel("퇴원일")).toHaveAttribute("type", "date");
   expect(await page.getByText("목록 요약").count()).toBe(0);
   expect(await page.getByText("대표 이미지 URL").count()).toBe(0);
   expect(await page.getByText("대표 이미지 설명").count()).toBe(0);
+  await expect(page.getByRole("button", { name: "이미지 추가" })).toBeVisible();
   await expect(page.locator(".admin-image-field input[type='file']")).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
   await expect(page.locator(".admin-image-field input[type='file']")).toHaveAttribute("multiple", "");
   await page.locator(".admin-image-field input[type='file']").setInputFiles(path.join(process.cwd(), "public/images/facility-01.jpg"));
-  await expect(page.getByRole("dialog", { name: "썸네일 편집" })).toBeVisible();
+  const cropDialog = page.getByRole("dialog", { name: "썸네일 편집" });
+  await expect(cropDialog).toBeVisible();
   await expect(page.getByAltText("썸네일로 자를 원본 이미지")).toBeVisible();
   await expect(page.getByAltText("정사각형 썸네일 미리보기")).toBeVisible();
-  await page.getByRole("button", { name: "영역 적용" }).click();
-  await expect(page.getByRole("dialog", { name: "썸네일 편집" })).toHaveCount(0);
+  await expect(cropDialog.getByRole("button", { name: "가운데 맞춤" })).toBeVisible();
+  await cropDialog.getByRole("button", { name: "저장" }).click();
+  await expect(cropDialog).toHaveCount(0);
+  await expect(page.getByLabel("선택한 이미지 미리보기").getByAltText("선택한 이미지 1")).toBeVisible();
 
   const adminLayout = await page.evaluate(() => {
     const dateLabels = Array.from(document.querySelectorAll(".admin-date-row label")).map((label) =>
@@ -66,6 +74,26 @@ test("admin pages are open for temporary testing while mutations still require C
   expect(adminLayout.bodyOverflowY).toBe("auto");
   expect(adminLayout.dateLabelCount).toBe(2);
   expect(adminLayout.dateTopDifference).toBeLessThan(2);
+  await page.locator("form").getByRole("button", { name: "취소" }).click();
+  await expect(page.getByRole("heading", { name: "새 수술 후기 작성" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "글 추가" }).first().click();
+  await page.getByLabel("제목").fill("CSRF 자동 갱신 테스트");
+  await page.getByLabel("수술 종류").fill("테스트");
+  await page.locator("textarea").fill("오래 열린 관리자 화면에서도 저장되어야 합니다.");
+  await page.request.get("/api/admin/csrf");
+  await page.locator("form").getByRole("button", { name: "저장" }).click();
+  await expect(page.getByText("수술 후기를 저장했습니다.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "CSRF 자동 갱신 테스트" })).toBeVisible();
+
+  const adminReviews = await (await page.request.get("/api/admin/reviews")).json();
+  const uiCreatedReview = adminReviews.reviews.find((review) => review.title === "CSRF 자동 갱신 테스트");
+  expect(uiCreatedReview).toBeTruthy();
+  const refreshedCookies = await page.context().cookies();
+  const refreshedCsrf = refreshedCookies.find((cookie) => cookie.name === "sams_admin_csrf")?.value;
+  await page.request.delete(`/api/admin/reviews/${uiCreatedReview.id}`, {
+    headers: { "x-csrf-token": refreshedCsrf },
+  });
 
   const listResponse = await page.request.get("/api/admin/reviews");
   expect(listResponse.status()).toBe(200);

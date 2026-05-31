@@ -218,16 +218,60 @@ async function createThumbnailFile(file, crop) {
 export default function ReviewAdmin({ initialReviews, adminEmail }) {
   const [reviews, setReviews] = useState(initialReviews);
   const [form, setForm] = useState(emptyForm);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [files, setFiles] = useState([]);
   const [fileNote, setFileNote] = useState("");
   const [cropImage, setCropImage] = useState(null);
   const [cropDraft, setCropDraft] = useState(null);
   const [thumbnailCrop, setThumbnailCrop] = useState(null);
   const [cropDrag, setCropDrag] = useState(null);
+  const [filePreviews, setFilePreviews] = useState([]);
   const [message, setMessage] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
   const [isPending, setIsPending] = useState(false);
   const cropStageRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const refreshCsrfToken = async () => {
+    const response = await fetch("/api/admin/csrf", {
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || !payload.csrfToken) {
+      throw new Error("보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.");
+    }
+
+    setCsrfToken(payload.csrfToken);
+
+    return payload.csrfToken;
+  };
+
+  const fetchWithCsrf = async (url, options = {}) => {
+    const makeRequest = async (token) =>
+      fetch(url, {
+        ...options,
+        credentials: "same-origin",
+        headers: {
+          ...(options.headers || {}),
+          "x-csrf-token": token,
+        },
+      });
+    let token = csrfToken || getCsrfToken() || (await refreshCsrfToken());
+    let response = await makeRequest(token);
+
+    if (response.status === 403) {
+      const result = await response.clone().json().catch(() => ({}));
+
+      if (result.error === "Invalid CSRF token.") {
+        token = await refreshCsrfToken();
+        response = await makeRequest(token);
+      }
+    }
+
+    return response;
+  };
 
   useEffect(() => {
     const objectUrl = cropImage?.url;
@@ -240,15 +284,22 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
   }, [cropImage?.url]);
 
   useEffect(() => {
+    const previews = files.map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
+
+    setFilePreviews(previews);
+
+    return () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    };
+  }, [files]);
+
+  useEffect(() => {
     let isMounted = true;
 
-    fetch("/api/admin/csrf")
-      .then((response) => response.json())
-      .then((payload) => {
-        if (isMounted && payload.csrfToken) {
-          setCsrfToken(payload.csrfToken);
-        }
-      })
+    refreshCsrfToken()
       .catch(() => {
         if (isMounted) {
           setMessage("보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.");
@@ -310,9 +361,8 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("/api/admin/uploads", {
+    const response = await fetchWithCsrf("/api/admin/uploads", {
       method: "POST",
-      headers: { "x-csrf-token": csrfToken || getCsrfToken() || "" },
       body: formData,
     });
     const result = await response.json().catch(() => ({}));
@@ -347,7 +397,6 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
         height: image.naturalHeight,
       });
       setCropDraft(crop);
-      setThumbnailCrop(crop);
     };
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl);
@@ -430,11 +479,10 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
         published: form.published,
       };
       const isEditing = Boolean(form.id);
-      const response = await fetch(isEditing ? `/api/admin/reviews/${form.id}` : "/api/admin/reviews", {
+      const response = await fetchWithCsrf(isEditing ? `/api/admin/reviews/${form.id}` : "/api/admin/reviews", {
         method: isEditing ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-csrf-token": csrfToken || getCsrfToken() || "",
         },
         body: JSON.stringify(payload),
       });
@@ -454,6 +502,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       setFileNote("");
       setThumbnailCrop(null);
       closeThumbnailEditor();
+      setIsEditorOpen(false);
       setMessage(isEditing ? "수술 후기를 수정했습니다." : "수술 후기를 저장했습니다.");
     } catch (error) {
       setMessage(error.message);
@@ -479,6 +528,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     setFileNote("");
     setThumbnailCrop(null);
     closeThumbnailEditor();
+    setIsEditorOpen(true);
     setMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -488,10 +538,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     setMessage("");
 
     try {
-      const response = await fetch(`/api/admin/reviews/${id}`, {
-        method: "DELETE",
-        headers: { "x-csrf-token": csrfToken || getCsrfToken() || "" },
-      });
+      const response = await fetchWithCsrf(`/api/admin/reviews/${id}`, { method: "DELETE" });
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -511,6 +558,35 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     await signOut({ callbackUrl: "/admin/login" });
   };
 
+  const clearForm = () => {
+    setForm(emptyForm);
+    setIsEditorOpen(false);
+    setFiles([]);
+    setFileNote("");
+    setThumbnailCrop(null);
+    closeThumbnailEditor();
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const startNewReview = () => {
+    setForm(emptyForm);
+    setFiles([]);
+    setFileNote("");
+    setThumbnailCrop(null);
+    closeThumbnailEditor();
+    setIsEditorOpen(true);
+    setMessage("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <main className="admin-page">
       <div className="admin-shell">
@@ -520,6 +596,9 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
             <p>{adminEmail}</p>
           </div>
           <div className="admin-actions">
+            <button className="admin-button" onClick={startNewReview} type="button">
+              글 추가
+            </button>
             <a className="admin-button is-secondary" href="/reviews">
               공개 화면
             </a>
@@ -529,107 +608,120 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
           </div>
         </div>
 
-        <form className="admin-review-form" onSubmit={saveReview}>
-          <label>
-            제목
-            <input maxLength={120} onChange={updateField("title")} required value={form.title} />
-          </label>
-          <label>
-            수술 종류
-            <input maxLength={40} onChange={updateField("category")} placeholder="예: 슬개골탈구, 십자인대, 골절" required value={form.category} />
-          </label>
-          <label>
-            견종 <span className="admin-optional">(선택)</span>
-            <input maxLength={60} onChange={updateField("breed")} placeholder="예: 말티즈, 푸들, 골든리트리버" value={form.breed} />
-          </label>
-          <div className="admin-date-row">
+        {isEditorOpen ? (
+          <form className="admin-review-form" onSubmit={saveReview}>
+            <div className="admin-form-heading">
+              <h2>{form.id ? "수술 후기 수정" : "새 수술 후기 작성"}</h2>
+            </div>
             <label>
-              입원일 <span className="admin-optional">(선택)</span>
-              <input onChange={updateField("admissionDate")} type="date" value={form.admissionDate} />
+              제목
+              <input maxLength={120} onChange={updateField("title")} required value={form.title} />
             </label>
             <label>
-              퇴원일 <span className="admin-optional">(선택)</span>
-              <input onChange={updateField("dischargeDate")} type="date" value={form.dischargeDate} />
+              수술 종류
+              <input maxLength={40} onChange={updateField("category")} placeholder="예: 슬개골탈구, 십자인대, 골절" required value={form.category} />
             </label>
-          </div>
-          <label className="is-wide">
-            본문
-            <textarea maxLength={5000} onChange={updateField("body")} required value={form.body} />
-          </label>
-          <label className="admin-image-field is-wide">
-            수술 후기 이미지 <span className="admin-optional">(선택, 여러 장 가능)</span>
-            {reviewThumbnail(form) ? (
-              <figure className="admin-thumbnail-preview-card">
-                <img className="admin-thumbnail-preview" alt="게시판 썸네일 미리보기" src={reviewThumbnail(form)} />
-                <figcaption>게시판 썸네일</figcaption>
-              </figure>
-            ) : null}
-            {reviewImages(form).length > 0 ? (
-              <div className="admin-image-preview-grid">
-                {reviewImages(form).map((imageUrl, index) => (
-                  <figure key={imageUrl}>
-                    <img className="admin-image-preview" alt={`수술 후기 이미지 ${index + 1}`} src={imageUrl} />
-                    {index === 0 ? <figcaption>첫 번째 이미지</figcaption> : null}
-                  </figure>
-                ))}
-              </div>
-            ) : null}
-            <input
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(event) => {
-                const selectedFiles = Array.from(event.target.files || []);
-
-                setFiles(selectedFiles);
-                setThumbnailCrop(null);
-                setFileNote(
-                  selectedFiles.length > 0
-                    ? `${selectedFiles.length}장 선택됨. 저장 시 각 이미지를 3MB 이하로 자동 최적화하고, 첫 번째 사진으로 정사각형 썸네일을 만듭니다.`
-                    : "",
-                );
-                openThumbnailEditor(selectedFiles);
-              }}
-              multiple
-              type="file"
-            />
-            <span className="admin-field-note">여러 장을 선택할 수 있고, 첫 번째 사진에서 정사각형 썸네일 영역을 지정합니다.</span>
-            {files.length > 0 ? (
-              <button className="admin-button is-secondary admin-crop-button" onClick={() => openThumbnailEditor(files)} type="button">
-                썸네일 영역 다시 조정
+            <label>
+              견종 <span className="admin-optional">(선택)</span>
+              <input maxLength={60} onChange={updateField("breed")} placeholder="예: 말티즈, 푸들, 골든리트리버" value={form.breed} />
+            </label>
+            <div className="admin-date-row">
+              <label>
+                입원일 <span className="admin-optional">(선택)</span>
+                <input onChange={updateField("admissionDate")} type="date" value={form.admissionDate} />
+              </label>
+              <label>
+                퇴원일 <span className="admin-optional">(선택)</span>
+                <input onChange={updateField("dischargeDate")} type="date" value={form.dischargeDate} />
+              </label>
+            </div>
+            <label className="is-wide">
+              본문
+              <textarea maxLength={5000} onChange={updateField("body")} required value={form.body} />
+            </label>
+            <div className="admin-image-field is-wide">
+              <span className="admin-field-label">
+                수술 후기 이미지 <span className="admin-optional">(선택, 여러 장 가능)</span>
+              </span>
+              {reviewThumbnail(form) ? (
+                <figure className="admin-thumbnail-preview-card">
+                  <img className="admin-thumbnail-preview" alt="게시판 썸네일 미리보기" src={reviewThumbnail(form)} />
+                  <figcaption>게시판 썸네일</figcaption>
+                </figure>
+              ) : null}
+              {reviewImages(form).length > 0 ? (
+                <div className="admin-image-preview-grid">
+                  {reviewImages(form).map((imageUrl, index) => (
+                    <figure key={imageUrl}>
+                      <img className="admin-image-preview" alt={`수술 후기 이미지 ${index + 1}`} src={imageUrl} />
+                      {index === 0 ? <figcaption>첫 번째 이미지</figcaption> : null}
+                    </figure>
+                  ))}
+                </div>
+              ) : null}
+              {filePreviews.length > 0 ? (
+                <div className="admin-selected-preview-grid" aria-label="선택한 이미지 미리보기">
+                  {filePreviews.map((preview, index) => (
+                    <figure key={`${preview.name}-${preview.url}`}>
+                      <img alt={`선택한 이미지 ${index + 1}`} src={preview.url} />
+                      <figcaption>{index === 0 ? "썸네일 대상" : preview.name}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              ) : null}
+              <button className="admin-button is-secondary admin-add-image-button" onClick={() => fileInputRef.current?.click()} type="button">
+                이미지 추가
               </button>
-            ) : null}
-            {fileNote ? <span className="admin-file-note">{fileNote}</span> : null}
-          </label>
-          <label>
-            공개 상태
-            <select onChange={(event) => setForm((current) => ({ ...current, published: event.target.value === "true" }))} value={String(form.published)}>
-              <option value="false">임시저장</option>
-              <option value="true">공개</option>
-            </select>
-          </label>
-          <div className="admin-actions">
-            <button className="admin-button" disabled={isPending} type="submit">
-              {form.id ? "수정 저장" : "새 후기 저장"}
-            </button>
-            <button
-              className="admin-button is-secondary"
-              onClick={() => {
-                setForm(emptyForm);
-                setFiles([]);
-                setFileNote("");
-                setThumbnailCrop(null);
-                closeThumbnailEditor();
-              }}
-              type="button"
-            >
-              새 글 작성
-            </button>
-          </div>
-        </form>
+              <input
+                accept="image/jpeg,image/png,image/webp"
+                className="admin-hidden-file-input"
+                onChange={(event) => {
+                  const selectedFiles = Array.from(event.target.files || []);
+
+                  setFiles(selectedFiles);
+                  setThumbnailCrop(null);
+                  setFileNote(
+                    selectedFiles.length > 0
+                      ? `${selectedFiles.length}장 선택됨. 저장 시 각 이미지를 3MB 이하로 자동 최적화하고, 첫 번째 사진으로 정사각형 썸네일을 만듭니다.`
+                      : "",
+                  );
+                  openThumbnailEditor(selectedFiles);
+                }}
+                multiple
+                ref={fileInputRef}
+                type="file"
+              />
+              <span className="admin-field-note">여러 장을 선택할 수 있고, 첫 번째 사진에서 정사각형 썸네일 영역을 지정합니다.</span>
+              {fileNote ? <span className="admin-file-note">{fileNote}</span> : null}
+            </div>
+            <label>
+              공개 상태
+              <select onChange={(event) => setForm((current) => ({ ...current, published: event.target.value === "true" }))} value={String(form.published)}>
+                <option value="false">임시저장</option>
+                <option value="true">공개</option>
+              </select>
+            </label>
+            <div className="admin-actions">
+              <button className="admin-button" disabled={isPending} type="submit">
+                저장
+              </button>
+              <button className="admin-button is-secondary" onClick={clearForm} type="button">
+                취소
+              </button>
+            </div>
+          </form>
+        ) : null}
 
         {message ? <p className="admin-message">{message}</p> : null}
 
         <section className="admin-list" aria-label="저장된 수술 후기">
-          {sortedReviews.map((review) => (
+          <div className="admin-list-heading">
+            <h2>작성된 수술 후기</h2>
+            <button className="admin-button" onClick={startNewReview} type="button">
+              글 추가
+            </button>
+          </div>
+          {sortedReviews.length > 0 ? sortedReviews.map((review) => (
             <article key={review.id}>
               <div>
                 <h2>{review.title}</h2>
@@ -648,7 +740,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
                 </button>
               </div>
             </article>
-          ))}
+          )) : <p className="admin-empty">아직 작성된 수술 후기가 없습니다.</p>}
         </section>
       </div>
       {cropImage && cropDraft ? (
@@ -659,9 +751,6 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
                 <h2>썸네일 편집</h2>
                 <p>{cropImage.fileName}</p>
               </div>
-              <button className="admin-button is-secondary" onClick={closeThumbnailEditor} type="button">
-                닫기
-              </button>
             </div>
             <div className="admin-crop-workspace">
               <div
@@ -758,19 +847,21 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
                   />
                 </label>
                 <div className="admin-actions">
+                  <button className="admin-button is-secondary" onClick={closeThumbnailEditor} type="button">
+                    취소
+                  </button>
                   <button
                     className="admin-button is-secondary"
                     onClick={() => {
                       const crop = centeredSquareCrop(cropImage.width, cropImage.height);
                       setCropDraft(crop);
-                      setThumbnailCrop(crop);
                     }}
                     type="button"
                   >
                     가운데 맞춤
                   </button>
                   <button className="admin-button" onClick={applyThumbnailCrop} type="button">
-                    영역 적용
+                    저장
                   </button>
                 </div>
               </aside>
