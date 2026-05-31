@@ -33,6 +33,10 @@ function dateRangeText(review) {
   return "";
 }
 
+function reviewThumbnail(review) {
+  return Array.isArray(review.imageUrls) && review.imageUrls.length > 0 ? review.imageUrls[0] : review.coverImageUrl;
+}
+
 export default function ReviewsBoard({ reviews }) {
   const [titleQuery, setTitleQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -107,8 +111,8 @@ export default function ReviewsBoard({ reviews }) {
           {filteredReviews.map((review) => (
             <Link className="review-card" href={`/reviews/${review.slug}`} key={review.id}>
               <div className="review-card__thumb">
-                {review.coverImageUrl ? (
-                  <img alt={review.coverImageAlt || review.title} src={review.coverImageUrl} />
+                {reviewThumbnail(review) ? (
+                  <img alt={`${review.title} 썸네일`} src={reviewThumbnail(review)} />
                 ) : (
                   <span>24S</span>
                 )}

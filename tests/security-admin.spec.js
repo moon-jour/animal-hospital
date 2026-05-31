@@ -41,7 +41,9 @@ test("admin pages are open for temporary testing while mutations still require C
   await expect(page.getByLabel("퇴원일")).toHaveAttribute("type", "date");
   expect(await page.getByText("목록 요약").count()).toBe(0);
   expect(await page.getByText("대표 이미지 URL").count()).toBe(0);
+  expect(await page.getByText("대표 이미지 설명").count()).toBe(0);
   await expect(page.locator(".admin-image-field input[type='file']")).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
+  await expect(page.locator(".admin-image-field input[type='file']")).toHaveAttribute("multiple", "");
 
   const adminLayout = await page.evaluate(() => {
     const dateLabels = Array.from(document.querySelectorAll(".admin-date-row label")).map((label) =>
@@ -107,8 +109,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
       admissionDate: "2026-05-01",
       dischargeDate: "2026-05-05",
       body: "관리자가 직접 작성한 공개 전 임시저장 후기입니다.",
-      coverImageUrl: "/images/facility-01.jpg",
-      coverImageAlt: "수술실",
+      imageUrls: ["/images/facility-01.jpg", "/images/facility-02.jpg"],
       authorEmail: "attacker@example.com",
       isAdmin: true,
       published: false,
@@ -123,6 +124,8 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   expect(created.breed).toBe("말티즈");
   expect(created.admissionDate).toBe("2026-05-01");
   expect(created.dischargeDate).toBe("2026-05-05");
+  expect(created.imageUrls).toEqual(["/images/facility-01.jpg", "/images/facility-02.jpg"]);
+  expect(created.coverImageUrl).toBe("/images/facility-01.jpg");
 
   const publicDrafts = await page.request.get("/api/reviews");
   expect((await publicDrafts.json()).reviews.map((review) => review.id)).not.toContain(created.id);
@@ -135,8 +138,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
       admissionDate: created.admissionDate,
       dischargeDate: created.dischargeDate,
       body: "공개된 수술 후기입니다.",
-      coverImageUrl: created.coverImageUrl,
-      coverImageAlt: created.coverImageAlt,
+      imageUrls: created.imageUrls,
       published: true,
     },
     headers: { cookie: cookieHeader, "x-csrf-token": csrf },
@@ -153,8 +155,12 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
 
   await page.goto("/reviews");
   await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
-  await expect(page.getByAltText("수술실")).toBeVisible();
+  await expect(page.getByAltText(`${created.title} 썸네일`)).toBeVisible();
   await expect(page.getByText("2026.05.01 - 2026.05.05")).toBeVisible();
+  await page.goto(`/reviews/${created.slug}`);
+  await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
+  await expect(page.locator(".review-detail__gallery img")).toHaveCount(2);
+  await page.goto("/reviews");
   await page.getByLabel("제목 검색").fill("슬개골");
   await page.getByLabel("수술 종류").selectOption("슬개골탈구");
   await page.getByLabel("견종").selectOption("말티즈");

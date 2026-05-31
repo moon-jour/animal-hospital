@@ -204,10 +204,15 @@
   line-height: 1.75;
 }
 
-.review-detail__hero {
+.review-detail__gallery {
+  display: grid;
+  gap: 14px;
+  margin-top: 42px;
+}
+
+.review-detail__gallery img {
   width: 100%;
   max-height: 520px;
-  margin-top: 42px;
   object-fit: contain;
   background: #000000;
   border-radius: 8px;

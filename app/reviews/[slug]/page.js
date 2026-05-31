@@ -13,6 +13,10 @@ function formatDate(value) {
   return value.replaceAll("-", ".");
 }
 
+function reviewImages(review) {
+  return Array.isArray(review.imageUrls) && review.imageUrls.length > 0 ? review.imageUrls : [review.coverImageUrl].filter(Boolean);
+}
+
 export default async function ReviewDetailPage({ params }) {
   const { slug } = await params;
   const review = await getPublishedReview(slug);
@@ -38,8 +42,12 @@ export default async function ReviewDetailPage({ params }) {
           {review.dischargeDate ? <span>퇴원 {formatDate(review.dischargeDate)}</span> : null}
         </div>
         <h1>{review.title}</h1>
-        {review.coverImageUrl ? (
-          <img className="review-detail__hero" alt={review.coverImageAlt || review.title} src={review.coverImageUrl} />
+        {reviewImages(review).length > 0 ? (
+          <div className="review-detail__gallery" aria-label="수술 후기 이미지">
+            {reviewImages(review).map((imageUrl, index) => (
+              <img key={imageUrl} alt={`${review.title} 이미지 ${index + 1}`} src={imageUrl} />
+            ))}
+          </div>
         ) : null}
         <div className="review-detail__content">
           {review.body.split("\n").map((line, index) => (

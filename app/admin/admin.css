@@ -130,13 +130,36 @@ body:has(.admin-page) {
   align-content: start;
 }
 
+.admin-image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.admin-image-preview-grid figure {
+  position: relative;
+  margin: 0;
+}
+
 .admin-image-preview {
-  width: min(280px, 100%);
+  width: 100%;
   aspect-ratio: 4 / 3;
   border: 1px solid rgba(10, 35, 68, 0.14);
   border-radius: 8px;
   background: #000000;
   object-fit: contain;
+}
+
+.admin-image-preview-grid figcaption {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(10, 35, 68, 0.86);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .admin-actions {

@@ -11,8 +11,8 @@ const emptyForm = {
   admissionDate: "",
   dischargeDate: "",
   body: "",
+  imageUrls: [],
   coverImageUrl: "",
-  coverImageAlt: "",
   published: false,
 };
 
@@ -58,6 +58,10 @@ function dateRangeText(review) {
   }
 
   return "";
+}
+
+function reviewImages(review) {
+  return Array.isArray(review.imageUrls) && review.imageUrls.length > 0 ? review.imageUrls : [review.coverImageUrl].filter(Boolean);
 }
 
 function loadImage(file) {
@@ -139,7 +143,7 @@ async function compressImage(file) {
 export default function ReviewAdmin({ initialReviews, adminEmail }) {
   const [reviews, setReviews] = useState(initialReviews);
   const [form, setForm] = useState(emptyForm);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [fileNote, setFileNote] = useState("");
   const [message, setMessage] = useState("");
   const [csrfToken, setCsrfToken] = useState("");
@@ -179,30 +183,39 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
-  const uploadImage = async () => {
-    if (!file) {
-      return form.coverImageUrl;
+  const uploadImages = async () => {
+    if (files.length === 0) {
+      return reviewImages(form);
     }
 
-    const optimized = await compressImage(file);
-    const formData = new FormData();
-    formData.append("file", optimized.file);
-    setFileNote(
-      `이미지를 ${formatBytes(optimized.originalSize)}에서 ${formatBytes(optimized.compressedSize)}로 최적화했습니다. (${optimized.dimensions.width}×${optimized.dimensions.height})`,
-    );
+    const uploadedUrls = [];
+    let originalSize = 0;
+    let compressedSize = 0;
 
-    const response = await fetch("/api/admin/uploads", {
-      method: "POST",
-      headers: { "x-csrf-token": csrfToken || getCsrfToken() || "" },
-      body: formData,
-    });
-    const result = await response.json().catch(() => ({}));
+    for (const selectedFile of files) {
+      const optimized = await compressImage(selectedFile);
+      const formData = new FormData();
+      formData.append("file", optimized.file);
+      originalSize += optimized.originalSize;
+      compressedSize += optimized.compressedSize;
 
-    if (!response.ok) {
-      throw new Error(result.error || "이미지 업로드에 실패했습니다.");
+      const response = await fetch("/api/admin/uploads", {
+        method: "POST",
+        headers: { "x-csrf-token": csrfToken || getCsrfToken() || "" },
+        body: formData,
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || "이미지 업로드에 실패했습니다.");
+      }
+
+      uploadedUrls.push(result.url);
     }
 
-    return result.url;
+    setFileNote(`${files.length}장 이미지를 ${formatBytes(originalSize)}에서 ${formatBytes(compressedSize)}로 최적화했습니다.`);
+
+    return uploadedUrls;
   };
 
   const saveReview = async (event) => {
@@ -219,7 +232,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
         throw new Error("퇴원일은 입원일과 같거나 이후여야 합니다.");
       }
 
-      const coverImageUrl = await uploadImage();
+      const imageUrls = await uploadImages();
       const payload = {
         title: form.title,
         category: form.category,
@@ -227,8 +240,8 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
         admissionDate: form.admissionDate,
         dischargeDate: form.dischargeDate,
         body: form.body,
-        coverImageUrl,
-        coverImageAlt: form.coverImageAlt,
+        imageUrls,
+        coverImageUrl: imageUrls[0] || "",
         published: form.published,
       };
       const isEditing = Boolean(form.id);
@@ -252,7 +265,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
           : [result.review, ...current],
       );
       setForm(emptyForm);
-      setFile(null);
+      setFiles([]);
       setFileNote("");
       setMessage(isEditing ? "수술 후기를 수정했습니다." : "수술 후기를 저장했습니다.");
     } catch (error) {
@@ -271,11 +284,11 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       admissionDate: review.admissionDate || "",
       dischargeDate: review.dischargeDate || "",
       body: review.body,
-      coverImageUrl: review.coverImageUrl,
-      coverImageAlt: review.coverImageAlt,
+      imageUrls: reviewImages(review),
+      coverImageUrl: reviewImages(review)[0] || "",
       published: review.published,
     });
-    setFile(null);
+    setFiles([]);
     setFileNote("");
     setMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -354,30 +367,34 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
             본문
             <textarea maxLength={5000} onChange={updateField("body")} required value={form.body} />
           </label>
-          <label>
-            대표 이미지 설명
-            <input maxLength={120} onChange={updateField("coverImageAlt")} value={form.coverImageAlt} />
-          </label>
           <label className="admin-image-field is-wide">
-            대표 이미지 <span className="admin-optional">(선택)</span>
-            {form.coverImageUrl ? (
-              <img className="admin-image-preview" alt={form.coverImageAlt || "대표 이미지 미리보기"} src={form.coverImageUrl} />
+            수술 후기 이미지 <span className="admin-optional">(선택, 여러 장 가능)</span>
+            {reviewImages(form).length > 0 ? (
+              <div className="admin-image-preview-grid">
+                {reviewImages(form).map((imageUrl, index) => (
+                  <figure key={imageUrl}>
+                    <img className="admin-image-preview" alt={`수술 후기 이미지 ${index + 1}`} src={imageUrl} />
+                    {index === 0 ? <figcaption>썸네일</figcaption> : null}
+                  </figure>
+                ))}
+              </div>
             ) : null}
             <input
               accept="image/jpeg,image/png,image/webp"
               onChange={(event) => {
-                const selectedFile = event.target.files?.[0] || null;
+                const selectedFiles = Array.from(event.target.files || []);
 
-                setFile(selectedFile);
+                setFiles(selectedFiles);
                 setFileNote(
-                  selectedFile
-                    ? `${selectedFile.name} · ${formatBytes(selectedFile.size)} 선택됨. 저장 시 3MB 이하로 자동 최적화합니다.`
+                  selectedFiles.length > 0
+                    ? `${selectedFiles.length}장 선택됨. 저장 시 각 이미지를 3MB 이하로 자동 최적화합니다. 첫 번째 사진이 썸네일로 사용됩니다.`
                     : "",
                 );
               }}
+              multiple
               type="file"
             />
-            <span className="admin-field-note">이미지는 저장할 때 3MB 이하로 자동 최적화한 뒤 업로드됩니다.</span>
+            <span className="admin-field-note">여러 장을 선택할 수 있고, 첫 번째 사진만 게시판 썸네일로 표시됩니다.</span>
             {fileNote ? <span className="admin-file-note">{fileNote}</span> : null}
           </label>
           <label>
@@ -395,7 +412,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
               className="admin-button is-secondary"
               onClick={() => {
                 setForm(emptyForm);
-                setFile(null);
+                setFiles([]);
                 setFileNote("");
               }}
               type="button"
