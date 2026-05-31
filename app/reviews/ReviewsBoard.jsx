@@ -9,6 +9,30 @@ function uniqueValues(reviews, key) {
   );
 }
 
+function formatDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  return value.replaceAll("-", ".");
+}
+
+function dateRangeText(review) {
+  if (review.admissionDate && review.dischargeDate) {
+    return `${formatDate(review.admissionDate)} - ${formatDate(review.dischargeDate)}`;
+  }
+
+  if (review.admissionDate) {
+    return `입원 ${formatDate(review.admissionDate)}`;
+  }
+
+  if (review.dischargeDate) {
+    return `퇴원 ${formatDate(review.dischargeDate)}`;
+  }
+
+  return "";
+}
+
 export default function ReviewsBoard({ reviews }) {
   const [titleQuery, setTitleQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -93,9 +117,10 @@ export default function ReviewsBoard({ reviews }) {
                 <div className="review-card__meta">
                   <span>{review.category}</span>
                   {review.breed ? <span>{review.breed}</span> : null}
+                  {dateRangeText(review) ? <span>{dateRangeText(review)}</span> : null}
                 </div>
                 <h2>{review.title}</h2>
-                <p>{review.excerpt || review.body.slice(0, 90)}</p>
+                <p>{review.body.slice(0, 90)}</p>
               </div>
             </Link>
           ))}

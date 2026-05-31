@@ -5,8 +5,9 @@ import LoginForm from "./LoginForm.jsx";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminLoginPage() {
+export default async function AdminLoginPage({ searchParams }) {
   const session = await getAdminSession();
+  const params = await searchParams;
 
   if (session) {
     redirect("/admin/reviews");
@@ -14,7 +15,7 @@ export default async function AdminLoginPage() {
 
   return (
     <main className="admin-page">
-      <LoginForm />
+      <LoginForm error={params?.error} />
     </main>
   );
 }

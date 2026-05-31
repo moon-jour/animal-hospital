@@ -87,6 +87,26 @@
   resize: vertical;
 }
 
+.admin-file-note {
+  color: rgba(10, 35, 68, 0.62);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.admin-field-note {
+  color: rgba(10, 35, 68, 0.58);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.admin-optional {
+  color: rgba(10, 35, 68, 0.5);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .admin-actions {
   grid-column: 1 / -1;
   display: flex;

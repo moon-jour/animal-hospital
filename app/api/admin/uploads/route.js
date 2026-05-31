@@ -11,7 +11,7 @@ const allowedMimeTypes = new Map([
   ["image/png", "png"],
   ["image/webp", "webp"],
 ]);
-const maxImageSize = 5 * 1024 * 1024;
+const maxImageSize = 3 * 1024 * 1024;
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +76,7 @@ export async function POST(request) {
   }
 
   if (file.size > maxImageSize) {
-    return NextResponse.json({ error: "Image must be 5MB or smaller." }, { status: 400 });
+    return NextResponse.json({ error: "Image must be 3MB or smaller." }, { status: 400 });
   }
 
   const bytes = new Uint8Array(await file.arrayBuffer());

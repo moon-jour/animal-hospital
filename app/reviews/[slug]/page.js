@@ -5,6 +5,14 @@ import { getPublishedReview } from "../../../lib/server/reviews.js";
 
 export const dynamic = "force-dynamic";
 
+function formatDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  return value.replaceAll("-", ".");
+}
+
 export default async function ReviewDetailPage({ params }) {
   const { slug } = await params;
   const review = await getPublishedReview(slug);
@@ -26,6 +34,8 @@ export default async function ReviewDetailPage({ params }) {
         <div className="review-detail__meta">
           <span>{review.category}</span>
           {review.breed ? <span>{review.breed}</span> : null}
+          {review.admissionDate ? <span>입원 {formatDate(review.admissionDate)}</span> : null}
+          {review.dischargeDate ? <span>퇴원 {formatDate(review.dischargeDate)}</span> : null}
         </div>
         <h1>{review.title}</h1>
         {review.coverImageUrl ? (

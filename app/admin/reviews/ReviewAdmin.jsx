@@ -1,18 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { signOut } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
 
 const emptyForm = {
   id: "",
   title: "",
   category: "수술 후기",
   breed: "",
-  excerpt: "",
+  admissionDate: "",
+  dischargeDate: "",
   body: "",
   coverImageUrl: "",
   coverImageAlt: "",
   published: false,
 };
+
+const maxUploadBytes = 3 * 1024 * 1024;
+const maxImageEdge = 2000;
+const compressionQualities = [0.86, 0.78, 0.7, 0.62, 0.54, 0.46];
 
 function getCsrfToken() {
   return document.cookie
@@ -22,12 +28,143 @@ function getCsrfToken() {
     ?.split("=")[1];
 }
 
+function formatBytes(bytes) {
+  if (!bytes) {
+    return "0MB";
+  }
+
+  return `${(bytes / 1024 / 1024).toFixed(2)}MB`;
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  return value.replaceAll("-", ".");
+}
+
+function dateRangeText(review) {
+  if (review.admissionDate && review.dischargeDate) {
+    return `${formatDate(review.admissionDate)} - ${formatDate(review.dischargeDate)}`;
+  }
+
+  if (review.admissionDate) {
+    return `입원 ${formatDate(review.admissionDate)}`;
+  }
+
+  if (review.dischargeDate) {
+    return `퇴원 ${formatDate(review.dischargeDate)}`;
+  }
+
+  return "";
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("이미지를 읽지 못했습니다."));
+    };
+    image.src = objectUrl;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, type, quality);
+  });
+}
+
+async function compressImage(file) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("이미지 파일만 업로드할 수 있습니다.");
+  }
+
+  const image = await loadImage(file);
+  const scale = Math.min(1, maxImageEdge / Math.max(image.naturalWidth, image.naturalHeight));
+  const canvas = document.createElement("canvas");
+
+  canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("이미지 압축을 준비하지 못했습니다.");
+  }
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const outputTypes = ["image/webp", "image/jpeg"];
+
+  for (const type of outputTypes) {
+    for (const quality of compressionQualities) {
+      const blob = await canvasToBlob(canvas, type, quality);
+
+      if (!blob || blob.size > maxUploadBytes) {
+        continue;
+      }
+
+      const extension = blob.type === "image/webp" ? "webp" : blob.type === "image/png" ? "png" : "jpg";
+      const baseName = file.name.replace(/\.[^.]+$/, "") || "review-image";
+
+      return {
+        file: new File([blob], `${baseName}.${extension}`, {
+          type: blob.type || type,
+          lastModified: Date.now(),
+        }),
+        originalSize: file.size,
+        compressedSize: blob.size,
+        dimensions: {
+          width: canvas.width,
+          height: canvas.height,
+        },
+      };
+    }
+  }
+
+  throw new Error("이미지를 3MB 이하로 압축하지 못했습니다. 더 작은 사진을 선택해주세요.");
+}
+
 export default function ReviewAdmin({ initialReviews, adminEmail }) {
   const [reviews, setReviews] = useState(initialReviews);
   const [form, setForm] = useState(emptyForm);
   const [file, setFile] = useState(null);
+  const [fileNote, setFileNote] = useState("");
   const [message, setMessage] = useState("");
+  const [csrfToken, setCsrfToken] = useState("");
   const [isPending, setIsPending] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch("/api/admin/csrf")
+      .then((response) => response.json())
+      .then((payload) => {
+        if (isMounted && payload.csrfToken) {
+          setCsrfToken(payload.csrfToken);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setMessage("보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.");
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const sortedReviews = useMemo(
     () =>
@@ -47,12 +184,16 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       return form.coverImageUrl;
     }
 
+    const optimized = await compressImage(file);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", optimized.file);
+    setFileNote(
+      `이미지를 ${formatBytes(optimized.originalSize)}에서 ${formatBytes(optimized.compressedSize)}로 최적화했습니다. (${optimized.dimensions.width}×${optimized.dimensions.height})`,
+    );
 
     const response = await fetch("/api/admin/uploads", {
       method: "POST",
-      headers: { "x-csrf-token": getCsrfToken() || "" },
+      headers: { "x-csrf-token": csrfToken || getCsrfToken() || "" },
       body: formData,
     });
     const result = await response.json().catch(() => ({}));
@@ -70,12 +211,21 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     setMessage("");
 
     try {
+      if (
+        form.admissionDate &&
+        form.dischargeDate &&
+        new Date(form.admissionDate).getTime() > new Date(form.dischargeDate).getTime()
+      ) {
+        throw new Error("퇴원일은 입원일과 같거나 이후여야 합니다.");
+      }
+
       const coverImageUrl = await uploadImage();
       const payload = {
         title: form.title,
         category: form.category,
         breed: form.breed,
-        excerpt: form.excerpt,
+        admissionDate: form.admissionDate,
+        dischargeDate: form.dischargeDate,
         body: form.body,
         coverImageUrl,
         coverImageAlt: form.coverImageAlt,
@@ -86,7 +236,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
         method: isEditing ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-csrf-token": getCsrfToken() || "",
+          "x-csrf-token": csrfToken || getCsrfToken() || "",
         },
         body: JSON.stringify(payload),
       });
@@ -103,6 +253,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       );
       setForm(emptyForm);
       setFile(null);
+      setFileNote("");
       setMessage(isEditing ? "수술 후기를 수정했습니다." : "수술 후기를 저장했습니다.");
     } catch (error) {
       setMessage(error.message);
@@ -117,13 +268,15 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       title: review.title,
       category: review.category,
       breed: review.breed || "",
-      excerpt: review.excerpt,
+      admissionDate: review.admissionDate || "",
+      dischargeDate: review.dischargeDate || "",
       body: review.body,
       coverImageUrl: review.coverImageUrl,
       coverImageAlt: review.coverImageAlt,
       published: review.published,
     });
     setFile(null);
+    setFileNote("");
     setMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -135,7 +288,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
     try {
       const response = await fetch(`/api/admin/reviews/${id}`, {
         method: "DELETE",
-        headers: { "x-csrf-token": getCsrfToken() || "" },
+        headers: { "x-csrf-token": csrfToken || getCsrfToken() || "" },
       });
       const result = await response.json().catch(() => ({}));
 
@@ -153,8 +306,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
   };
 
   const logout = async () => {
-    await fetch("/api/admin/auth/logout", { method: "POST" });
-    window.location.assign("/admin/login");
+    await signOut({ callbackUrl: "/admin/login" });
   };
 
   return (
@@ -185,12 +337,16 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
             <input maxLength={40} onChange={updateField("category")} placeholder="예: 슬개골탈구, 십자인대, 골절" required value={form.category} />
           </label>
           <label>
-            견종
+            견종 <span className="admin-optional">(선택)</span>
             <input maxLength={60} onChange={updateField("breed")} placeholder="예: 말티즈, 푸들, 골든리트리버" value={form.breed} />
           </label>
-          <label className="is-wide">
-            목록 요약
-            <input maxLength={240} onChange={updateField("excerpt")} value={form.excerpt} />
+          <label>
+            입원일 <span className="admin-optional">(선택)</span>
+            <input onChange={updateField("admissionDate")} type="date" value={form.admissionDate} />
+          </label>
+          <label>
+            퇴원일 <span className="admin-optional">(선택)</span>
+            <input onChange={updateField("dischargeDate")} type="date" value={form.dischargeDate} />
           </label>
           <label className="is-wide">
             본문
@@ -206,7 +362,21 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
           </label>
           <label>
             이미지 업로드
-            <input accept="image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] || null)} type="file" />
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) => {
+                const selectedFile = event.target.files?.[0] || null;
+
+                setFile(selectedFile);
+                setFileNote(
+                  selectedFile
+                    ? `${selectedFile.name} · ${formatBytes(selectedFile.size)} 선택됨. 저장 시 3MB 이하로 자동 최적화합니다.`
+                    : "",
+                );
+              }}
+              type="file"
+            />
+            {fileNote ? <span className="admin-file-note">{fileNote}</span> : null}
           </label>
           <label>
             공개 상태
@@ -219,7 +389,15 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
             <button className="admin-button" disabled={isPending} type="submit">
               {form.id ? "수정 저장" : "새 후기 저장"}
             </button>
-            <button className="admin-button is-secondary" onClick={() => setForm(emptyForm)} type="button">
+            <button
+              className="admin-button is-secondary"
+              onClick={() => {
+                setForm(emptyForm);
+                setFile(null);
+                setFileNote("");
+              }}
+              type="button"
+            >
               새 글 작성
             </button>
           </div>
@@ -235,6 +413,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
                 <p>
                   {review.category}
                   {review.breed ? ` · ${review.breed}` : ""} · {review.published ? "공개" : "임시저장"}
+                  {dateRangeText(review) ? ` · ${dateRangeText(review)}` : ""}
                 </p>
               </div>
               <div className="admin-actions">

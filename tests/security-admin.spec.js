@@ -11,25 +11,21 @@ test.beforeAll(async () => {
   await fs.rm(dataFile, { force: true });
 });
 
-async function adminLogin(page) {
-  const loginResponse = await page.request.post("/api/admin/auth/request", {
-    data: { email: "admin@example.com" },
-  });
-  const loginPayload = await loginResponse.json();
-
-  expect(loginResponse.ok()).toBe(true);
-  expect(loginPayload.devMagicLink).toContain("/api/admin/auth/callback");
-
-  await page.goto(loginPayload.devMagicLink);
+async function openAdmin(page) {
+  await page.goto("/admin/reviews");
   await expect(page).toHaveURL(/\/admin\/reviews/);
+  await expect(page.getByRole("heading", { name: "수술 후기 관리" })).toBeVisible();
+
+  const csrfResponse = await page.request.get("/api/admin/csrf");
+  const csrfPayload = await csrfResponse.json();
+
+  expect(csrfResponse.ok()).toBe(true);
+  expect(csrfPayload.csrfToken).toBeTruthy();
 
   const cookies = await page.context().cookies();
   const csrf = cookies.find((cookie) => cookie.name === "sams_admin_csrf")?.value;
-  const session = cookies.find((cookie) => cookie.name === "sams_admin_session");
 
   expect(csrf).toBeTruthy();
-  expect(session?.httpOnly).toBe(true);
-  expect(session?.sameSite).toBe("Lax");
 
   return {
     csrf,
@@ -37,36 +33,36 @@ async function adminLogin(page) {
   };
 }
 
-test("admin pages and APIs require authentication", async ({ page }) => {
+test("admin pages are open for temporary testing while mutations still require CSRF", async ({ page }) => {
   await page.goto("/admin/reviews");
-  await expect(page).toHaveURL(/\/admin\/login/);
+  await expect(page).toHaveURL(/\/admin\/reviews/);
+  await expect(page.getByRole("heading", { name: "수술 후기 관리" })).toBeVisible();
+  await expect(page.getByLabel("입원일")).toHaveAttribute("type", "date");
+  await expect(page.getByLabel("퇴원일")).toHaveAttribute("type", "date");
+  expect(await page.getByText("목록 요약").count()).toBe(0);
 
   const listResponse = await page.request.get("/api/admin/reviews");
-  expect(listResponse.status()).toBe(401);
+  expect(listResponse.status()).toBe(200);
 
   const createResponse = await page.request.post("/api/admin/reviews", {
     data: { title: "권한 없는 요청", category: "수술 후기", body: "작성 실패" },
   });
-  expect(createResponse.status()).toBe(401);
+  expect(createResponse.status()).toBe(403);
 
   const uploadResponse = await page.request.post("/api/admin/uploads", {
     multipart: { file: { name: "bad.svg", mimeType: "image/svg+xml", buffer: Buffer.from("<svg />") } },
   });
-  expect(uploadResponse.status()).toBe(401);
+  expect(uploadResponse.status()).toBe(403);
 });
 
-test("non-admin email cannot obtain a login link", async ({ request }) => {
-  const response = await request.post("/api/admin/auth/request", {
-    data: { email: "visitor@example.com" },
-  });
-  const payload = await response.json();
-
-  expect(response.ok()).toBe(true);
-  expect(payload.devMagicLink).toBeUndefined();
+test("login page redirects to admin while temporary auth bypass is enabled", async ({ page }) => {
+  await page.goto("/admin/login");
+  await expect(page).toHaveURL(/\/admin\/reviews/);
+  await expect(page.getByRole("heading", { name: "수술 후기 관리" })).toBeVisible();
 });
 
 test("admin review mutations validate CSRF, payloads, publish state, and author identity", async ({ page }) => {
-  const { cookieHeader, csrf } = await adminLogin(page);
+  const { cookieHeader, csrf } = await openAdmin(page);
 
   const invalidCsrf = await page.request.post("/api/admin/reviews", {
     data: { title: "CSRF 테스트", category: "수술 후기", body: "실패해야 합니다." },
@@ -90,7 +86,8 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
       title: "슬개골 탈구 수술 회복 사례",
       category: "슬개골탈구",
       breed: "말티즈",
-      excerpt: "보행 평가부터 회복 관리까지 정리한 사례입니다.",
+      admissionDate: "2026-05-01",
+      dischargeDate: "2026-05-05",
       body: "관리자가 직접 작성한 공개 전 임시저장 후기입니다.",
       coverImageUrl: "/images/facility-01.jpg",
       coverImageAlt: "수술실",
@@ -106,6 +103,8 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   expect(created.authorEmail).toBe("admin@example.com");
   expect(created.published).toBe(false);
   expect(created.breed).toBe("말티즈");
+  expect(created.admissionDate).toBe("2026-05-01");
+  expect(created.dischargeDate).toBe("2026-05-05");
 
   const publicDrafts = await page.request.get("/api/reviews");
   expect((await publicDrafts.json()).reviews.map((review) => review.id)).not.toContain(created.id);
@@ -115,7 +114,8 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
       title: created.title,
       category: created.category,
       breed: created.breed,
-      excerpt: created.excerpt,
+      admissionDate: created.admissionDate,
+      dischargeDate: created.dischargeDate,
       body: "공개된 수술 후기입니다.",
       coverImageUrl: created.coverImageUrl,
       coverImageAlt: created.coverImageAlt,
@@ -136,6 +136,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   await page.goto("/reviews");
   await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
   await expect(page.getByAltText("수술실")).toBeVisible();
+  await expect(page.getByText("2026.05.01 - 2026.05.05")).toBeVisible();
   await page.getByLabel("제목 검색").fill("슬개골");
   await page.getByLabel("수술 종류").selectOption("슬개골탈구");
   await page.getByLabel("견종").selectOption("말티즈");
@@ -150,7 +151,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
 });
 
 test("admin upload rejects unsupported MIME types and spoofed image bodies before touching Blob storage", async ({ page }) => {
-  const { cookieHeader, csrf } = await adminLogin(page);
+  const { cookieHeader, csrf } = await openAdmin(page);
   const response = await page.request.post("/api/admin/uploads", {
     headers: { cookie: cookieHeader, "x-csrf-token": csrf },
     multipart: {
@@ -164,6 +165,22 @@ test("admin upload rejects unsupported MIME types and spoofed image bodies befor
 
   expect(response.status()).toBe(400);
   expect(await response.json()).toEqual({ error: "Only jpg, png, and webp images are allowed." });
+
+  const oversizedResponse = await page.request.post("/api/admin/uploads", {
+    headers: { cookie: cookieHeader, "x-csrf-token": csrf },
+    multipart: {
+      file: {
+        name: "oversized.png",
+        mimeType: "image/png",
+        buffer: Buffer.concat([
+          Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+          Buffer.alloc(3 * 1024 * 1024),
+        ]),
+      },
+    },
+  });
+  expect(oversizedResponse.status()).toBe(400);
+  expect(await oversizedResponse.json()).toEqual({ error: "Image must be 3MB or smaller." });
 
   const spoofedResponse = await page.request.post("/api/admin/uploads", {
     headers: { cookie: cookieHeader, "x-csrf-token": csrf },

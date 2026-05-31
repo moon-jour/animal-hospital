@@ -7,13 +7,15 @@ const forbiddenValues = [
   process.env.BLOB_READ_WRITE_TOKEN,
   process.env.AUTH_SECRET,
   process.env.NEXTAUTH_SECRET,
-  process.env.RESEND_API_KEY,
+  process.env.AUTH_GOOGLE_SECRET,
+  process.env.GOOGLE_CLIENT_SECRET,
 ].filter((value) => value && value.length >= 12);
 const forbiddenPatterns = [
   /postgres(?:ql)?:\/\/[^"'\s]+/i,
   /BLOB_READ_WRITE_TOKEN\s*=\s*[^"'\s]+/i,
   /AUTH_SECRET\s*=\s*[^"'\s]+/i,
-  /RESEND_API_KEY\s*=\s*[^"'\s]+/i,
+  /AUTH_GOOGLE_SECRET\s*=\s*[^"'\s]+/i,
+  /GOOGLE_CLIENT_SECRET\s*=\s*[^"'\s]+/i,
 ];
 
 async function listFiles(root) {
