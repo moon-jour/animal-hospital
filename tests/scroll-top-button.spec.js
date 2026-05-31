@@ -126,6 +126,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     const panels = Array.from(document.querySelectorAll(".snap-panel"));
     const headerRect = header.getBoundingClientRect();
     const heroRect = hero.getBoundingClientRect();
+    const reviewNavLink = header.querySelector('.nav-links > ul > li > a[href="/reviews"]');
 
     return {
       brandMarkOpacity: getComputedStyle(header.querySelector(".brand-mark img")).opacity,
@@ -143,6 +144,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
       ),
       panelIds: panels.map((panel) => panel.id || panel.getAttribute("aria-label")),
       pageTextIncludesLaparoscopic: document.body.textContent.includes("복강경센터"),
+      reviewNavColor: getComputedStyle(reviewNavLink).color,
       rootHeight: Math.round(scrollRoot.getBoundingClientRect().height),
       viewportHeight: window.innerHeight,
       mainMenuDetailCount: scrollRoot.querySelectorAll(".menu-detail-section").length,
@@ -170,6 +172,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     "커뮤니티",
     "수술후기",
   ]);
+  expect(measurements.reviewNavColor).toBe("rgb(244, 211, 94)");
   expect(measurements.panelIds).toEqual(["병원 메인 이미지", "about", "space", "hours", "doctors", "services"]);
   expect(measurements.mainMenuDetailCount).toBe(0);
   expect(measurements.menuPageDetailCount).toBe(6);

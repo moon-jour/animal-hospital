@@ -230,6 +230,11 @@ body.is-menu-page-active .site-header.is-dark {
   color: #00a99d;
 }
 
+.nav-links > ul > li > a[href="/reviews"],
+.nav-links > ul > li:hover > a[href="/reviews"] {
+  color: #f4d35e;
+}
+
 .sub-menu {
   position: absolute;
   top: 70px;
