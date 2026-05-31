@@ -240,7 +240,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   expect(reviewsLayout.bodyOverflowY).toBe("auto");
   expect(reviewsLayout.headerBackground).toBe("rgb(1, 62, 106)");
   expect(reviewsLayout.headerHeight).toBeGreaterThanOrEqual(96);
-  expect(reviewsLayout.reviewLinkColor).toBe("rgb(56, 221, 208)");
+  expect(reviewsLayout.reviewLinkColor).toBe("rgb(244, 211, 94)");
   expect(reviewsLayout.surgerySelectPaddingRight).toBeGreaterThanOrEqual(34);
   expect(reviewsLayout.titleFontSize).toBeLessThanOrEqual(56);
   await expect(page.getByText("SUYEONG ANIMAL MEDICAL CENTER")).toBeVisible();
