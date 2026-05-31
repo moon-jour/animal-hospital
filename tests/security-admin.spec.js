@@ -40,6 +40,24 @@ test("admin pages are open for temporary testing while mutations still require C
   await expect(page.getByLabel("입원일")).toHaveAttribute("type", "date");
   await expect(page.getByLabel("퇴원일")).toHaveAttribute("type", "date");
   expect(await page.getByText("목록 요약").count()).toBe(0);
+  expect(await page.getByText("대표 이미지 URL").count()).toBe(0);
+  await expect(page.locator(".admin-image-field input[type='file']")).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
+
+  const adminLayout = await page.evaluate(() => {
+    const dateLabels = Array.from(document.querySelectorAll(".admin-date-row label")).map((label) =>
+      label.getBoundingClientRect(),
+    );
+
+    return {
+      bodyOverflowY: getComputedStyle(document.body).overflowY,
+      dateLabelCount: dateLabels.length,
+      dateTopDifference: Math.abs((dateLabels[0]?.top || 0) - (dateLabels[1]?.top || 0)),
+    };
+  });
+
+  expect(adminLayout.bodyOverflowY).toBe("auto");
+  expect(adminLayout.dateLabelCount).toBe(2);
+  expect(adminLayout.dateTopDifference).toBeLessThan(2);
 
   const listResponse = await page.request.get("/api/admin/reviews");
   expect(listResponse.status()).toBe(200);

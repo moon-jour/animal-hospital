@@ -340,28 +340,29 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
             견종 <span className="admin-optional">(선택)</span>
             <input maxLength={60} onChange={updateField("breed")} placeholder="예: 말티즈, 푸들, 골든리트리버" value={form.breed} />
           </label>
-          <label>
-            입원일 <span className="admin-optional">(선택)</span>
-            <input onChange={updateField("admissionDate")} type="date" value={form.admissionDate} />
-          </label>
-          <label>
-            퇴원일 <span className="admin-optional">(선택)</span>
-            <input onChange={updateField("dischargeDate")} type="date" value={form.dischargeDate} />
-          </label>
+          <div className="admin-date-row">
+            <label>
+              입원일 <span className="admin-optional">(선택)</span>
+              <input onChange={updateField("admissionDate")} type="date" value={form.admissionDate} />
+            </label>
+            <label>
+              퇴원일 <span className="admin-optional">(선택)</span>
+              <input onChange={updateField("dischargeDate")} type="date" value={form.dischargeDate} />
+            </label>
+          </div>
           <label className="is-wide">
             본문
             <textarea maxLength={5000} onChange={updateField("body")} required value={form.body} />
           </label>
           <label>
-            대표 이미지 URL
-            <input onChange={updateField("coverImageUrl")} value={form.coverImageUrl} />
-          </label>
-          <label>
             대표 이미지 설명
             <input maxLength={120} onChange={updateField("coverImageAlt")} value={form.coverImageAlt} />
           </label>
-          <label>
-            이미지 업로드
+          <label className="admin-image-field is-wide">
+            대표 이미지 <span className="admin-optional">(선택)</span>
+            {form.coverImageUrl ? (
+              <img className="admin-image-preview" alt={form.coverImageAlt || "대표 이미지 미리보기"} src={form.coverImageUrl} />
+            ) : null}
             <input
               accept="image/jpeg,image/png,image/webp"
               onChange={(event) => {
@@ -376,6 +377,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
               }}
               type="file"
             />
+            <span className="admin-field-note">이미지는 저장할 때 3MB 이하로 자동 최적화한 뒤 업로드됩니다.</span>
             {fileNote ? <span className="admin-file-note">{fileNote}</span> : null}
           </label>
           <label>

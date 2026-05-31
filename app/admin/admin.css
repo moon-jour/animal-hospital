@@ -1,3 +1,15 @@
+.admin-page,
+body:has(.admin-page) {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html:has(.admin-page),
+body:has(.admin-page) {
+  height: auto;
+  min-height: 100%;
+}
+
 .admin-page {
   min-height: 100vh;
   background: #f7f9fc;
@@ -82,6 +94,13 @@
   grid-column: 1 / -1;
 }
 
+.admin-date-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .admin-review-form textarea {
   min-height: 180px;
   resize: vertical;
@@ -105,6 +124,19 @@
   color: rgba(10, 35, 68, 0.5);
   font-size: 12px;
   font-weight: 800;
+}
+
+.admin-image-field {
+  align-content: start;
+}
+
+.admin-image-preview {
+  width: min(280px, 100%);
+  aspect-ratio: 4 / 3;
+  border: 1px solid rgba(10, 35, 68, 0.14);
+  border-radius: 8px;
+  background: #000000;
+  object-fit: contain;
 }
 
 .admin-actions {
@@ -168,5 +200,9 @@
   .admin-review-form,
   .admin-list article {
     grid-template-columns: 1fr;
+  }
+
+  .admin-date-row {
+    gap: 10px;
   }
 }
