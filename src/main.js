@@ -3,11 +3,12 @@ import "./styles.css";
 const hospital = {
   name: "24시수영동물의료센터",
   englishName: "SUYEONG ANIMAL MEDICAL CENTER",
-  phone: "051-000-0000",
+  phone: "051)710-6555",
   address: "부산 수영구 수영로 000, 1층",
 };
 
 const hospitalDisplayName = hospital.name.replace("동물", "<wbr />동물");
+const hospitalPhoneHref = hospital.phone.replace(/\D/g, "");
 const imageUrl = (filename) => `${import.meta.env.BASE_URL}images/${filename}`;
 const heroBackgroundImageUrl = imageUrl("hero-room-background.jpg");
 const heroForegroundImageUrl = imageUrl("hero-care-team.png");
@@ -17,60 +18,104 @@ const kimDoctorImageUrl = imageUrl("doctor-kim-card.png");
 const primaryMenuItems = [
   {
     label: "병원소개",
-    href: "#about",
+    href: "#menu-about",
+    lead: "병원의 방향과 의료진, 공간 정보를 한 번에 확인할 수 있습니다.",
     subItems: [
-      { label: "미션/비전", href: "#about" },
-      { label: "의료진소개", href: "#doctors" },
-      { label: "병원둘러보기", href: "#space" },
-      { label: "진료시간/오시는길", href: "#hours" },
+      { label: "미션/비전", href: "#menu-about", description: "24시간 동물의료센터의 진료 철학과 운영 방향" },
+      { label: "의료진소개", href: "#menu-about", description: "두 대표원장 중심의 책임 진료 체계" },
+      { label: "병원둘러보기", href: "#menu-about", description: "진료실, 처치실, 수술실, 대기 공간 안내" },
+      { label: "보유장비", href: "#menu-about", description: "검사와 수술을 위한 주요 의료 장비" },
+      { label: "진료시간/오시는길", href: "#menu-about", description: "24시간 진료와 내원 정보" },
     ],
   },
   {
     label: "외과센터",
-    href: "#services",
+    href: "#menu-surgery",
+    lead: "수술 상담부터 처치, 회복 계획까지 한 흐름으로 연결합니다.",
     subItems: [
-      { label: "외과 수술", href: "#services" },
-      { label: "슬개골탈구", href: "#services" },
-      { label: "십자인대", href: "#services" },
-      { label: "골절", href: "#services" },
+      { label: "외과 수술", href: "#menu-surgery", description: "정밀한 술전 평가와 수술 계획" },
+      { label: "슬개골탈구", href: "#menu-surgery", description: "보행 상태와 단계별 수술 상담" },
+      { label: "십자인대", href: "#menu-surgery", description: "파열 진단과 안정적인 회복 관리" },
+      { label: "골절", href: "#menu-surgery", description: "응급 처치부터 고정 수술까지" },
+      { label: "종양 수술", href: "#menu-surgery", description: "검사 결과 기반의 수술 범위 상담" },
     ],
   },
   {
     label: "영상진단센터",
-    href: "#space",
+    href: "#menu-imaging",
+    lead: "검사 장비와 판독 흐름을 정리해 진료 판단의 정확도를 높입니다.",
     subItems: [
-      { label: "영상 장비", href: "#space" },
-      { label: "CT", href: "#space" },
-      { label: "초음파", href: "#space" },
+      { label: "영상 장비", href: "#menu-imaging", description: "검사 목적에 맞춘 장비 운용" },
+      { label: "CT", href: "#menu-imaging", description: "골격, 흉복부, 종양 평가를 위한 단층 영상" },
+      { label: "초음파", href: "#menu-imaging", description: "복부 장기와 연부조직 실시간 평가" },
+      { label: "방사선", href: "#menu-imaging", description: "기초 검사와 수술 전후 상태 확인" },
     ],
   },
   {
     label: "재활센터",
-    href: "#services",
+    href: "#menu-rehab",
+    lead: "수술 후 회복과 만성 통증 관리를 위해 단계별 재활 계획을 세웁니다.",
     subItems: [
-      { label: "재활 치료", href: "#services" },
-      { label: "레이저치료", href: "#services" },
-      { label: "회복 관리", href: "#services" },
+      { label: "재활 치료", href: "#menu-rehab", description: "상태별 운동 범위와 근력 회복 관리" },
+      { label: "레이저치료", href: "#menu-rehab", description: "통증과 염증 완화를 위한 보조 치료" },
+      { label: "체외충격파", href: "#menu-rehab", description: "조직 회복을 돕는 비침습 치료" },
+      { label: "회복 관리", href: "#menu-rehab", description: "수술 후 생활 관리와 재진 계획" },
     ],
   },
   {
     label: "진료안내",
-    href: "#hours",
+    href: "#menu-guide",
+    lead: "진료 시간, 야간 내원, 응급 상황의 연락 방법을 안내합니다.",
     subItems: [
-      { label: "24시간 진료", href: "#hours" },
-      { label: "야간 응급", href: "#hours" },
-      { label: "내원 안내", href: "#contact" },
+      { label: "24시간 진료", href: "#menu-guide", description: "연중무휴 24시간 진료 체계" },
+      { label: "야간 응급", href: "#menu-guide", description: "야간 내원 전 전화 연결 안내" },
+      { label: "내원 안내", href: "#menu-guide", description: "접수, 검사, 상담 흐름" },
+      { label: "전화 문의", href: "#menu-guide", description: hospital.phone },
     ],
   },
   {
     label: "커뮤니티",
-    href: "#contact",
+    href: "#menu-community",
+    lead: "병원 소식과 보호자 문의를 모아 안내합니다.",
     subItems: [
-      { label: "공지사항", href: "#contact" },
-      { label: "상담 문의", href: "#contact" },
+      { label: "공지사항", href: "#menu-community", description: "병원 운영과 진료 관련 안내" },
+      { label: "상담 문의", href: "#menu-community", description: "진료 전 확인이 필요한 내용 접수" },
+      { label: "자주 묻는 질문", href: "#menu-community", description: "내원과 진료 준비에 대한 답변" },
     ],
   },
 ];
+const menuDetailSectionMarkup = primaryMenuItems
+  .map(
+    ({ label, href, lead, subItems }, menuIndex) => `
+      <section class="menu-detail-section snap-panel reveal-section" id="${href.slice(1)}" data-reveal-section>
+        <div class="menu-detail-section__inner">
+          <div class="menu-detail-section__heading">
+            <span>${String(menuIndex + 1).padStart(2, "0")}</span>
+            <p class="section-kicker">MENU</p>
+            <h2>${label}</h2>
+            <p>${lead}</p>
+          </div>
+          <div class="menu-detail-section__placeholder" aria-hidden="true">
+            <span>${label}</span>
+          </div>
+          <div class="menu-detail-grid" aria-label="${label} 하위 메뉴">
+            ${subItems
+              .map(
+                ({ label: subLabel, description }, index) => `
+                  <article>
+                    <span>${String(index + 1).padStart(2, "0")}</span>
+                    <h3>${subLabel}</h3>
+                    <p>${description}</p>
+                  </article>
+                `,
+              )
+              .join("")}
+          </div>
+        </div>
+      </section>
+    `,
+  )
+  .join("");
 const sectionMenuItems = [
   { label: "병원소개", href: "#about" },
   { label: "시설소개", href: "#space" },
@@ -202,7 +247,7 @@ document.querySelector("#app").innerHTML = `
       </ul>
     </nav>
     <div class="header-actions">
-      <a class="header-call" href="tel:${hospital.phone.replaceAll("-", "")}" aria-label="전화 문의 ${hospital.phone}">
+      <a class="header-call" href="tel:${hospitalPhoneHref}" aria-label="전화 문의 ${hospital.phone}">
         <span aria-hidden="true">☎</span>
         <strong>${hospital.phone}</strong>
       </a>
@@ -221,7 +266,7 @@ document.querySelector("#app").innerHTML = `
 
   <div class="global-menu" id="global-menu" aria-hidden="true">
     <div class="global-menu__header">
-      <a class="global-menu__call" href="tel:${hospital.phone.replaceAll("-", "")}">
+      <a class="global-menu__call" href="tel:${hospitalPhoneHref}">
         <span aria-hidden="true">☎</span>
         <strong>${hospital.phone}</strong>
       </a>
@@ -413,7 +458,7 @@ document.querySelector("#app").innerHTML = `
             </p>
             <div class="hours-contact-card">
               <span>예약 및 야간 문의</span>
-              <a href="tel:${hospital.phone.replaceAll("-", "")}">${hospital.phone}</a>
+              <a href="tel:${hospitalPhoneHref}">${hospital.phone}</a>
             </div>
           </div>
         </article>
@@ -493,6 +538,8 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
+    ${menuDetailSectionMarkup}
+
     <section class="contact snap-panel reveal-section" id="contact" aria-label="문의" data-reveal-section>
       <div>
         <p class="eyebrow">CONTACT</p>
@@ -500,7 +547,7 @@ document.querySelector("#app").innerHTML = `
       </div>
       <address>
         <span>${hospital.address}</span>
-        <a href="tel:${hospital.phone.replaceAll("-", "")}">${hospital.phone}</a>
+        <a href="tel:${hospitalPhoneHref}">${hospital.phone}</a>
       </address>
       <div class="contact__footer" aria-label="병원 정보">
         <span>${hospital.name}</span>
@@ -522,6 +569,7 @@ const scrollTopButton = document.querySelector(".scroll-top-button");
 const revealSections = Array.from(document.querySelectorAll("[data-reveal-section]"));
 const snapPanels = Array.from(document.querySelectorAll(".snap-panel"));
 const siteHeader = document.querySelector(".site-header");
+const navMenuItems = Array.from(document.querySelectorAll(".nav-links > ul > li"));
 const sectionMenu = document.querySelector(".section-menu");
 const sectionMenuLinks = Array.from(document.querySelectorAll("[data-section-menu-link]"));
 const menuButton = document.querySelector(".menu-button");
@@ -715,7 +763,7 @@ const updateSectionNavigation = () => {
   const activePanel = snapPanels[activeIndex];
   const activePanelId = activePanel?.id ? `#${activePanel.id}` : "";
   const shouldHideSectionMenu = activeIndex === 0 || !sectionMenuLinks.some((link) => link.hash === activePanelId);
-  const shouldUseDarkHeader = Boolean(activePanel?.matches(".intro, .services"));
+  const shouldUseDarkHeader = Boolean(activePanel?.matches(".intro, .services, .menu-detail-section"));
 
   sectionMenu?.classList.toggle("is-hidden", shouldHideSectionMenu);
   sectionMenu?.classList.toggle("is-on-light", shouldUseDarkHeader);
@@ -748,6 +796,19 @@ const closeGlobalMenu = () => {
 
 menuButton?.addEventListener("click", openGlobalMenu);
 globalMenuCloseButton?.addEventListener("click", closeGlobalMenu);
+
+for (const item of navMenuItems) {
+  item.addEventListener("pointerleave", () => {
+    item.classList.remove("is-click-closed");
+  });
+
+  item.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      item.classList.add("is-click-closed");
+      link.blur();
+    });
+  });
+}
 
 globalMenu?.addEventListener("click", (event) => {
   if (event.target === globalMenu || event.target.closest('a[href^="#"]')) {

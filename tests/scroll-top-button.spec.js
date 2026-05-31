@@ -123,6 +123,8 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
 
     return {
       brandMarkOpacity: getComputedStyle(header.querySelector(".brand-mark img")).opacity,
+      headerCallHref: header.querySelector(".header-call").getAttribute("href"),
+      headerCallText: header.querySelector(".header-call strong").textContent.trim(),
       headerBackground: getComputedStyle(header).backgroundColor,
       headerBackdropFilter:
         getComputedStyle(header).backdropFilter || getComputedStyle(header).webkitBackdropFilter,
@@ -133,6 +135,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
       navLabels: Array.from(header.querySelectorAll(".nav-links > ul > li > a")).map((link) =>
         link.textContent.trim(),
       ),
+      pageTextIncludesLaparoscopic: document.body.textContent.includes("복강경센터"),
       rootHeight: Math.round(scrollRoot.getBoundingClientRect().height),
       viewportHeight: window.innerHeight,
       panelHeights: panels.map((panel) => Math.round(panel.getBoundingClientRect().height)),
@@ -140,6 +143,8 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
   });
 
   expect(measurements.brandMarkOpacity).toBe("1");
+  expect(measurements.headerCallHref).toBe("tel:0517106555");
+  expect(measurements.headerCallText).toBe("051)710-6555");
   expect(measurements.headerBackdropFilter).toBe("none");
   expect(measurements.headerBackground).toBe("rgba(0, 0, 0, 0)");
   expect(measurements.headerHeight).toBe(100);
@@ -154,6 +159,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     "진료안내",
     "커뮤니티",
   ]);
+  expect(measurements.pageTextIncludesLaparoscopic).toBe(false);
   expect(measurements.rootHeight).toBe(measurements.viewportHeight);
   expect(measurements.panelHeights.length).toBeGreaterThan(4);
   for (const panelHeight of measurements.panelHeights) {
@@ -183,10 +189,35 @@ test("header dropdown, full menu, and left section menu follow the reference lay
 
   expect(hoverMenu.background).toBe("rgb(250, 250, 250)");
   expect(hoverMenu.borderRadius).toBe("10px");
-  expect(hoverMenu.labels).toEqual(["미션/비전", "의료진소개", "병원둘러보기", "진료시간/오시는길"]);
+  expect(hoverMenu.labels).toEqual([
+    "미션/비전",
+    "의료진소개",
+    "병원둘러보기",
+    "보유장비",
+    "진료시간/오시는길",
+  ]);
   expect(hoverMenu.opacity).toBe("1");
   expect(hoverMenu.visibility).toBe("visible");
 
+  await page.click(".nav-links > ul > li:first-child .sub-menu a");
+  await page.waitForTimeout(360);
+
+  const clickedDropdown = await page.evaluate(() => {
+    const submenu = document.querySelector(".nav-links > ul > li:first-child .sub-menu");
+    const menuItem = document.querySelector(".nav-links > ul > li:first-child");
+    const submenuStyle = getComputedStyle(submenu);
+
+    return {
+      opacity: submenuStyle.opacity,
+      visibility: submenuStyle.visibility,
+    };
+  });
+
+  expect(clickedDropdown.opacity).toBe("0");
+  expect(clickedDropdown.visibility).toBe("hidden");
+
+  await page.mouse.move(1200, 60);
+  await page.waitForTimeout(120);
   await page.click(".menu-button");
   await page.waitForTimeout(700);
 
@@ -199,6 +230,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
       className: menu.className,
       firstRow: menu.querySelector(".global-menu__title").textContent.trim(),
       height: Math.round(menu.getBoundingClientRect().height),
+      phone: menu.querySelector(".global-menu__call strong").textContent.trim(),
       position: menuStyle.position,
       rowCount: menu.querySelectorAll(".global-menu__nav > ul > li").length,
     };
@@ -208,6 +240,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   expect(globalMenu.className).toContain("is-active");
   expect(globalMenu.firstRow).toBe("병원소개");
   expect(globalMenu.height).toBe(900);
+  expect(globalMenu.phone).toBe("051)710-6555");
   expect(globalMenu.position).toBe("fixed");
   expect(globalMenu.rowCount).toBe(6);
 
@@ -239,6 +272,23 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   expect(sectionMenu.menuClassName).not.toContain("is-hidden");
   expect(sectionMenu.menuLeft).toBe("0px");
   expect(sectionMenu.labels).toEqual(["병원소개", "시설소개", "진료안내", "의료진", "진료과목"]);
+
+  const menuDetailSections = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll(".menu-detail-section")).map((section) => ({
+      cardCount: section.querySelectorAll(".menu-detail-grid article").length,
+      id: section.id,
+      title: section.querySelector("h2").textContent.trim(),
+    }));
+  });
+
+  expect(menuDetailSections).toEqual([
+    { cardCount: 5, id: "menu-about", title: "병원소개" },
+    { cardCount: 5, id: "menu-surgery", title: "외과센터" },
+    { cardCount: 4, id: "menu-imaging", title: "영상진단센터" },
+    { cardCount: 4, id: "menu-rehab", title: "재활센터" },
+    { cardCount: 4, id: "menu-guide", title: "진료안내" },
+    { cardCount: 3, id: "menu-community", title: "커뮤니티" },
+  ]);
 });
 
 test("reveal sections fade in slowly every time they are entered from either direction", async ({ page }) => {
