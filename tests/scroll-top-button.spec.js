@@ -168,11 +168,12 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     "재활센터",
     "진료안내",
     "커뮤니티",
+    "수술후기",
   ]);
   expect(measurements.panelIds).toEqual(["병원 메인 이미지", "about", "space", "hours", "doctors", "services"]);
   expect(measurements.mainMenuDetailCount).toBe(0);
   expect(measurements.menuPageDetailCount).toBe(6);
-  expect(measurements.menuPagePanelCount).toBe(26);
+  expect(measurements.menuPagePanelCount).toBe(25);
   expect(measurements.pageTextIncludesLaparoscopic).toBe(false);
   expect(measurements.rootHeight).toBe(measurements.viewportHeight);
   expect(measurements.panelHeights.length).toBe(6);
@@ -281,7 +282,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   expect(globalMenu.height).toBe(900);
   expect(globalMenu.phone).toBe("051)710-6555");
   expect(globalMenu.position).toBe("fixed");
-  expect(globalMenu.rowCount).toBe(6);
+  expect(globalMenu.rowCount).toBe(7);
 
   await page.click(".global-menu__close");
   await page.waitForTimeout(700);
@@ -310,7 +311,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   expect(sectionMenu.headerClassName).toContain("is-dark");
   expect(sectionMenu.menuClassName).not.toContain("is-hidden");
   expect(sectionMenu.menuLeft).toBe("0px");
-  expect(sectionMenu.labels).toEqual(["병원소개", "시설소개", "진료안내", "의료진", "진료과목"]);
+  expect(sectionMenu.labels).toEqual(["병원소개", "시설소개", "진료안내", "의료진", "진료과목", "수술후기"]);
 
   const menuDetailSections = await page.evaluate(() => {
     return Array.from(document.querySelectorAll(".menu-detail-section")).map((section) => ({
@@ -327,7 +328,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
     { id: "menu-imaging", navCount: 4, panelCount: 4, title: "영상 장비" },
     { id: "menu-rehab", navCount: 4, panelCount: 4, title: "재활 치료" },
     { id: "menu-guide", navCount: 4, panelCount: 4, title: "24시간 진료" },
-    { id: "menu-community", navCount: 4, panelCount: 4, title: "공지사항" },
+    { id: "menu-community", navCount: 3, panelCount: 3, title: "공지사항" },
   ]);
 });
 

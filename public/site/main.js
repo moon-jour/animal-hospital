@@ -80,13 +80,19 @@ const primaryMenuItems = [
     lead: "병원 소식과 보호자 문의를 모아 안내합니다.",
     subItems: [
       { label: "공지사항", href: "#menu-community-notice", description: "병원 운영과 진료 관련 안내" },
-      { label: "수술 후기", href: "/reviews", description: "관리자가 공개한 수술 사례와 회복 과정" },
       { label: "상담 문의", href: "#menu-community-contact", description: "진료 전 확인이 필요한 내용 접수" },
       { label: "자주 묻는 질문", href: "#menu-community-faq", description: "내원과 진료 준비에 대한 답변" },
     ],
   },
+  {
+    label: "수술후기",
+    href: "/reviews",
+    lead: "관리자가 공개한 수술 사례와 회복 과정을 게시판에서 확인할 수 있습니다.",
+    subItems: [],
+  },
 ];
 const menuDetailSectionMarkup = primaryMenuItems
+  .filter(({ href, subItems }) => href.startsWith("#") && subItems.length > 0)
   .map(
     ({ label, href, lead, subItems }, menuIndex) => `
       <section class="menu-detail-section" id="${href.slice(1)}" data-menu-detail-section>
@@ -142,6 +148,7 @@ const sectionMenuItems = [
   { label: "진료안내", href: "#hours" },
   { label: "의료진", href: "#doctors" },
   { label: "진료과목", href: "#services" },
+  { label: "수술후기", href: "/reviews" },
 ];
 const menuSubItemMarkup = (items) =>
   items.map(({ label, href }) => `<li><a href="${href}">${label}</a></li>`).join("");
@@ -150,9 +157,13 @@ const primaryMenuMarkup = primaryMenuItems
     ({ label, href, subItems }) => `
       <li>
         <a href="${href}"><span>${label}</span></a>
-        <ul class="sub-menu">
-          ${menuSubItemMarkup(subItems)}
-        </ul>
+        ${
+          subItems.length > 0
+            ? `<ul class="sub-menu">
+                ${menuSubItemMarkup(subItems)}
+              </ul>`
+            : ""
+        }
       </li>
     `,
   )
@@ -162,9 +173,13 @@ const globalMenuMarkup = primaryMenuItems
     ({ label, href, subItems }) => `
       <li>
         <a class="global-menu__title" href="${href}">${label}</a>
-        <ul>
-          ${menuSubItemMarkup(subItems)}
-        </ul>
+        ${
+          subItems.length > 0
+            ? `<ul>
+                ${menuSubItemMarkup(subItems)}
+              </ul>`
+            : ""
+        }
       </li>
     `,
   )

@@ -23,7 +23,10 @@ export default async function ReviewDetailPage({ params }) {
         <Link href="/reviews">수술 후기 목록</Link>
       </header>
       <article className="reviews-main review-detail">
-        <span className="review-detail__meta">{review.category}</span>
+        <div className="review-detail__meta">
+          <span>{review.category}</span>
+          {review.breed ? <span>{review.breed}</span> : null}
+        </div>
         <h1>{review.title}</h1>
         {review.coverImageUrl ? (
           <img className="review-detail__hero" alt={review.coverImageAlt || review.title} src={review.coverImageUrl} />

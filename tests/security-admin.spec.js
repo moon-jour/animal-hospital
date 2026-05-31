@@ -88,9 +88,12 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   const createResponse = await page.request.post("/api/admin/reviews", {
     data: {
       title: "슬개골 탈구 수술 회복 사례",
-      category: "외과 수술",
+      category: "슬개골탈구",
+      breed: "말티즈",
       excerpt: "보행 평가부터 회복 관리까지 정리한 사례입니다.",
       body: "관리자가 직접 작성한 공개 전 임시저장 후기입니다.",
+      coverImageUrl: "/images/facility-01.jpg",
+      coverImageAlt: "수술실",
       authorEmail: "attacker@example.com",
       isAdmin: true,
       published: false,
@@ -102,6 +105,7 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
 
   expect(created.authorEmail).toBe("admin@example.com");
   expect(created.published).toBe(false);
+  expect(created.breed).toBe("말티즈");
 
   const publicDrafts = await page.request.get("/api/reviews");
   expect((await publicDrafts.json()).reviews.map((review) => review.id)).not.toContain(created.id);
@@ -110,10 +114,11 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
     data: {
       title: created.title,
       category: created.category,
+      breed: created.breed,
       excerpt: created.excerpt,
       body: "공개된 수술 후기입니다.",
-      coverImageUrl: "",
-      coverImageAlt: "",
+      coverImageUrl: created.coverImageUrl,
+      coverImageAlt: created.coverImageAlt,
       published: true,
     },
     headers: { cookie: cookieHeader, "x-csrf-token": csrf },
@@ -130,6 +135,13 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
 
   await page.goto("/reviews");
   await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
+  await expect(page.getByAltText("수술실")).toBeVisible();
+  await page.getByLabel("제목 검색").fill("슬개골");
+  await page.getByLabel("수술 종류").selectOption("슬개골탈구");
+  await page.getByLabel("견종").selectOption("말티즈");
+  await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
+  await page.getByLabel("제목 검색").fill("십자인대");
+  await expect(page.getByText("조건에 맞는 수술 후기가 없습니다.")).toBeVisible();
 
   const deleteResponse = await page.request.delete(`/api/admin/reviews/${created.id}`, {
     headers: { cookie: cookieHeader, "x-csrf-token": csrf },

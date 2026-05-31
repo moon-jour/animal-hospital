@@ -6,6 +6,7 @@ const emptyForm = {
   id: "",
   title: "",
   category: "수술 후기",
+  breed: "",
   excerpt: "",
   body: "",
   coverImageUrl: "",
@@ -73,6 +74,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       const payload = {
         title: form.title,
         category: form.category,
+        breed: form.breed,
         excerpt: form.excerpt,
         body: form.body,
         coverImageUrl,
@@ -114,6 +116,7 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
       id: review.id,
       title: review.title,
       category: review.category,
+      breed: review.breed || "",
       excerpt: review.excerpt,
       body: review.body,
       coverImageUrl: review.coverImageUrl,
@@ -178,8 +181,12 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
             <input maxLength={120} onChange={updateField("title")} required value={form.title} />
           </label>
           <label>
-            분류
-            <input maxLength={40} onChange={updateField("category")} required value={form.category} />
+            수술 종류
+            <input maxLength={40} onChange={updateField("category")} placeholder="예: 슬개골탈구, 십자인대, 골절" required value={form.category} />
+          </label>
+          <label>
+            견종
+            <input maxLength={60} onChange={updateField("breed")} placeholder="예: 말티즈, 푸들, 골든리트리버" value={form.breed} />
           </label>
           <label className="is-wide">
             목록 요약
@@ -226,7 +233,8 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
               <div>
                 <h2>{review.title}</h2>
                 <p>
-                  {review.category} · {review.published ? "공개" : "임시저장"}
+                  {review.category}
+                  {review.breed ? ` · ${review.breed}` : ""} · {review.published ? "공개" : "임시저장"}
                 </p>
               </div>
               <div className="admin-actions">
