@@ -1,3 +1,4 @@
+// Generated from src/main.js by scripts/sync-site-script.mjs.
 export function renderSiteMarkup() {
 
 const hospital = {
@@ -1644,3 +1645,5 @@ if (hero && canAnimateHero) {
   });
 }
 }
+
+mountSite();

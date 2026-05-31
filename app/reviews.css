@@ -1,0 +1,138 @@
+.reviews-page {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #0a2344;
+  font-family:
+    Inter, Pretendard, "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.reviews-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px clamp(20px, 5vw, 72px);
+  background: rgba(5, 31, 61, 0.86);
+  color: #ffffff;
+}
+
+.reviews-header a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.reviews-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+}
+
+.reviews-brand img {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+}
+
+.reviews-main {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: clamp(64px, 10vw, 116px) 0;
+}
+
+.reviews-main h1 {
+  margin: 0;
+  max-width: 760px;
+  font-size: clamp(42px, 8vw, 88px);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.reviews-main > p {
+  margin: 24px 0 0;
+  max-width: 640px;
+  color: rgba(10, 35, 68, 0.72);
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.7;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 56px;
+}
+
+.review-card {
+  min-height: 360px;
+  overflow: hidden;
+  border: 1px solid rgba(10, 35, 68, 0.14);
+  border-radius: 8px;
+  background: #ffffff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.review-card img {
+  width: 100%;
+  height: 190px;
+  display: block;
+  object-fit: cover;
+  background: #000000;
+}
+
+.review-card__body {
+  padding: 22px;
+}
+
+.review-card__body span,
+.review-detail__meta {
+  color: rgba(10, 35, 68, 0.58);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.review-card h2,
+.review-detail h1 {
+  margin: 12px 0 0;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.review-card p,
+.review-detail__content {
+  color: rgba(10, 35, 68, 0.76);
+  line-height: 1.75;
+}
+
+.review-detail__hero {
+  width: 100%;
+  max-height: 520px;
+  margin-top: 42px;
+  object-fit: contain;
+  background: #000000;
+  border-radius: 8px;
+}
+
+.review-empty {
+  margin-top: 56px;
+  padding: 44px;
+  border: 1px solid rgba(10, 35, 68, 0.14);
+  border-radius: 8px;
+  color: rgba(10, 35, 68, 0.68);
+}
+
+@media (max-width: 860px) {
+  .reviews-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reviews-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

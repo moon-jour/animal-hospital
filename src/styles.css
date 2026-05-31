@@ -241,13 +241,22 @@ img {
   transition:
     opacity 220ms ease,
     transform 220ms ease,
-    visibility 220ms ease;
+    visibility 0s linear 220ms;
 }
 
 .nav-links > ul > li:hover:not(.is-click-closed) .sub-menu {
   opacity: 1;
   transform: translate(-50%, 0);
   visibility: visible;
+  transition-delay: 0s, 0s, 0s;
+}
+
+.nav-links > ul > li.is-click-closed .sub-menu {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -6px);
+  visibility: hidden;
+  transition-delay: 0s, 0s, 0s;
 }
 
 .sub-menu li {
