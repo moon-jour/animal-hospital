@@ -297,18 +297,10 @@ export default function ReviewAdmin({ initialReviews, adminEmail }) {
   }, [files]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    refreshCsrfToken()
-      .catch(() => {
-        if (isMounted) {
-          setMessage("보안 토큰을 가져오지 못했습니다. 새로고침 후 다시 시도해주세요.");
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
+    refreshCsrfToken().catch(() => {
+      // Mutating requests refresh and validate CSRF again. Avoid leaving a stale
+      // page-level warning on long-lived admin tabs when the initial warm-up fails.
+    });
   }, []);
 
   const sortedReviews = useMemo(
