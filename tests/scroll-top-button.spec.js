@@ -135,9 +135,12 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
       navLabels: Array.from(header.querySelectorAll(".nav-links > ul > li > a")).map((link) =>
         link.textContent.trim(),
       ),
+      panelIds: panels.map((panel) => panel.id || panel.getAttribute("aria-label")),
       pageTextIncludesLaparoscopic: document.body.textContent.includes("복강경센터"),
       rootHeight: Math.round(scrollRoot.getBoundingClientRect().height),
       viewportHeight: window.innerHeight,
+      mainMenuDetailCount: scrollRoot.querySelectorAll(".menu-detail-section").length,
+      menuPageDetailCount: document.querySelectorAll(".menu-page-root .menu-detail-section").length,
       panelHeights: panels.map((panel) => Math.round(panel.getBoundingClientRect().height)),
     };
   });
@@ -146,7 +149,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
   expect(measurements.headerCallHref).toBe("tel:0517106555");
   expect(measurements.headerCallText).toBe("051)710-6555");
   expect(measurements.headerBackdropFilter).toBe("none");
-  expect(measurements.headerBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(measurements.headerBackground).toBe("rgba(1, 62, 106, 0.78)");
   expect(measurements.headerHeight).toBe(100);
   expect(measurements.headerPosition).toBe("fixed");
   expect(measurements.heroTop).toBe(0);
@@ -159,9 +162,12 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
     "진료안내",
     "커뮤니티",
   ]);
+  expect(measurements.panelIds).toEqual(["병원 메인 이미지", "about", "space", "hours", "doctors", "services"]);
+  expect(measurements.mainMenuDetailCount).toBe(0);
+  expect(measurements.menuPageDetailCount).toBe(6);
   expect(measurements.pageTextIncludesLaparoscopic).toBe(false);
   expect(measurements.rootHeight).toBe(measurements.viewportHeight);
-  expect(measurements.panelHeights.length).toBeGreaterThan(4);
+  expect(measurements.panelHeights.length).toBe(6);
   for (const panelHeight of measurements.panelHeights) {
     expect(panelHeight).toBe(measurements.rootHeight);
   }
@@ -204,18 +210,33 @@ test("header dropdown, full menu, and left section menu follow the reference lay
 
   const clickedDropdown = await page.evaluate(() => {
     const submenu = document.querySelector(".nav-links > ul > li:first-child .sub-menu");
-    const menuItem = document.querySelector(".nav-links > ul > li:first-child");
     const submenuStyle = getComputedStyle(submenu);
+    const menuPage = document.querySelector(".menu-page-root");
+    const activeMenuSection = document.querySelector(".menu-page-root .menu-detail-section.is-active");
 
     return {
+      activeMenuSectionId: activeMenuSection?.id,
+      locationHash: window.location.hash,
+      menuPageActive: menuPage.classList.contains("is-active"),
+      menuPageAriaHidden: menuPage.getAttribute("aria-hidden"),
+      menuPageDisplay: getComputedStyle(activeMenuSection).display,
       opacity: submenuStyle.opacity,
+      scrollRootHidden: document.querySelector("main#top").getAttribute("aria-hidden"),
       visibility: submenuStyle.visibility,
     };
   });
 
+  expect(clickedDropdown.activeMenuSectionId).toBe("menu-about");
+  expect(clickedDropdown.locationHash).toBe("#menu-about");
+  expect(clickedDropdown.menuPageActive).toBe(true);
+  expect(clickedDropdown.menuPageAriaHidden).toBe("false");
+  expect(clickedDropdown.menuPageDisplay).toBe("flex");
   expect(clickedDropdown.opacity).toBe("0");
+  expect(clickedDropdown.scrollRootHidden).toBe("true");
   expect(clickedDropdown.visibility).toBe("hidden");
 
+  await page.click(".site-header .brand");
+  await page.waitForTimeout(360);
   await page.mouse.move(1200, 60);
   await page.waitForTimeout(120);
   await page.click(".menu-button");
@@ -267,7 +288,7 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   });
 
   expect(sectionMenu.activeText).toBe("병원소개");
-  expect(sectionMenu.headerBackground).toBe("rgba(255, 255, 255, 0.72)");
+  expect(sectionMenu.headerBackground).toBe("rgba(1, 62, 106, 0.78)");
   expect(sectionMenu.headerClassName).toContain("is-dark");
   expect(sectionMenu.menuClassName).not.toContain("is-hidden");
   expect(sectionMenu.menuLeft).toBe("0px");

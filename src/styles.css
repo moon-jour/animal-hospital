@@ -130,7 +130,7 @@ img {
   padding: 0 clamp(20px, 3.2vw, 48px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   color: var(--linen);
-  background: transparent;
+  background: rgba(var(--brand-navy-rgb), 0.78);
   transition:
     color 300ms ease,
     background 300ms ease,
@@ -138,9 +138,9 @@ img {
 }
 
 .site-header.is-dark {
-  border-bottom-color: rgba(29, 39, 79, 0.18);
-  color: #1d274f;
-  background: rgba(255, 255, 255, 0.72);
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+  color: var(--linen);
+  background: rgba(var(--brand-navy-rgb), 0.78);
 }
 
 .brand {
@@ -1296,6 +1296,46 @@ img {
   padding: clamp(34px, 6vh, 64px) 48px;
   color: var(--ink);
   background: var(--paper);
+}
+
+.menu-page-root {
+  position: fixed;
+  inset: 0;
+  z-index: 32;
+  padding-top: var(--header-height);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--paper);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    opacity 260ms ease,
+    visibility 260ms ease;
+}
+
+.menu-page-root.is-active {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.menu-page-root .menu-detail-section {
+  display: none;
+  min-height: calc(100dvh - var(--header-height));
+}
+
+.menu-page-root .menu-detail-section.is-active {
+  display: flex;
+}
+
+.is-menu-page-active .section-menu {
+  left: -220px;
+  opacity: 0;
+}
+
+.is-menu-page-active .scroll-top-button {
+  z-index: 42;
 }
 
 .menu-detail-section__inner {

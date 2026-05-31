@@ -87,7 +87,7 @@ const primaryMenuItems = [
 const menuDetailSectionMarkup = primaryMenuItems
   .map(
     ({ label, href, lead, subItems }, menuIndex) => `
-      <section class="menu-detail-section snap-panel reveal-section" id="${href.slice(1)}" data-reveal-section>
+      <section class="menu-detail-section" id="${href.slice(1)}" data-menu-detail-section>
         <div class="menu-detail-section__inner">
           <div class="menu-detail-section__heading">
             <span>${String(menuIndex + 1).padStart(2, "0")}</span>
@@ -538,36 +538,27 @@ document.querySelector("#app").innerHTML = `
       </div>
     </section>
 
-    ${menuDetailSectionMarkup}
-
-    <section class="contact snap-panel reveal-section" id="contact" aria-label="문의" data-reveal-section>
-      <div>
-        <p class="eyebrow">CONTACT</p>
-        <h2>진료가 필요한 순간, 편하게 문의하세요.</h2>
-      </div>
-      <address>
-        <span>${hospital.address}</span>
-        <a href="tel:${hospitalPhoneHref}">${hospital.phone}</a>
-      </address>
-      <div class="contact__footer" aria-label="병원 정보">
-        <span>${hospital.name}</span>
-        <span>© <span id="year"></span> ${hospital.englishName}</span>
-      </div>
-    </section>
   </main>
+
+  <div class="menu-page-root" aria-hidden="true">
+    ${menuDetailSectionMarkup}
+  </div>
 
   <a class="scroll-top-button" href="#top" aria-label="맨 위로 이동">
     <span aria-hidden="true">↑</span>
   </a>
 `;
 
-document.querySelector("#year").textContent = new Date().getFullYear();
+const yearElement = document.querySelector("#year");
+if (yearElement) {
+  yearElement.textContent = new Date().getFullYear();
+}
 
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 const scrollRoot = document.querySelector(".snap-root");
 const scrollTopButton = document.querySelector(".scroll-top-button");
 const revealSections = Array.from(document.querySelectorAll("[data-reveal-section]"));
-const snapPanels = Array.from(document.querySelectorAll(".snap-panel"));
+const snapPanels = Array.from(scrollRoot?.querySelectorAll(".snap-panel") ?? []);
 const siteHeader = document.querySelector(".site-header");
 const navMenuItems = Array.from(document.querySelectorAll(".nav-links > ul > li"));
 const sectionMenu = document.querySelector(".section-menu");
@@ -575,6 +566,8 @@ const sectionMenuLinks = Array.from(document.querySelectorAll("[data-section-men
 const menuButton = document.querySelector(".menu-button");
 const globalMenu = document.querySelector(".global-menu");
 const globalMenuCloseButton = document.querySelector(".global-menu__close");
+const menuPageRoot = document.querySelector(".menu-page-root");
+const menuDetailSections = Array.from(document.querySelectorAll("[data-menu-detail-section]"));
 const SNAP_SCROLL_DURATION = 940;
 const SNAP_SETTLE_LOCK_MS = 220;
 const WHEEL_DELTA_THRESHOLD = 360;
@@ -763,7 +756,7 @@ const updateSectionNavigation = () => {
   const activePanel = snapPanels[activeIndex];
   const activePanelId = activePanel?.id ? `#${activePanel.id}` : "";
   const shouldHideSectionMenu = activeIndex === 0 || !sectionMenuLinks.some((link) => link.hash === activePanelId);
-  const shouldUseDarkHeader = Boolean(activePanel?.matches(".intro, .services, .menu-detail-section"));
+  const shouldUseDarkHeader = Boolean(activePanel?.matches(".intro, .services"));
 
   sectionMenu?.classList.toggle("is-hidden", shouldHideSectionMenu);
   sectionMenu?.classList.toggle("is-on-light", shouldUseDarkHeader);
@@ -780,6 +773,46 @@ const updateSectionNavigation = () => {
 const updateScrollState = () => {
   updateScrollTopButton();
   updateSectionNavigation();
+};
+
+const showMenuPage = (target, { updateHash = true } = {}) => {
+  if (!target || !menuPageRoot) {
+    return;
+  }
+
+  stopScrollAnimation();
+  resetScrollGestureState({ resetTouch: true });
+  document.body.classList.add("is-menu-page-active");
+  menuPageRoot.classList.add("is-active");
+  menuPageRoot.setAttribute("aria-hidden", "false");
+  scrollRoot?.setAttribute("aria-hidden", "true");
+
+  for (const section of menuDetailSections) {
+    const isActive = section === target;
+
+    section.classList.toggle("is-active", isActive);
+    section.setAttribute("aria-hidden", String(!isActive));
+  }
+
+  menuPageRoot.scrollTo({ top: 0, behavior: "auto" });
+  sectionMenu?.classList.add("is-hidden");
+  scrollTopButton?.classList.remove("is-at-top");
+
+  if (updateHash && window.location.hash !== `#${target.id}`) {
+    window.history.pushState(null, "", `#${target.id}`);
+  }
+};
+
+const hideMenuPage = () => {
+  document.body.classList.remove("is-menu-page-active");
+  menuPageRoot?.classList.remove("is-active");
+  menuPageRoot?.setAttribute("aria-hidden", "true");
+  scrollRoot?.removeAttribute("aria-hidden");
+
+  for (const section of menuDetailSections) {
+    section.classList.remove("is-active");
+    section.setAttribute("aria-hidden", "true");
+  }
 };
 
 const openGlobalMenu = () => {
@@ -992,6 +1025,10 @@ const goToPageTop = () => {
   }
 
   lastTopRequest = now;
+  hideMenuPage();
+  if (window.location.hash) {
+    window.history.pushState(null, "", "#top");
+  }
   scrollToTarget(scrollRoot);
   window.setTimeout(updateScrollState, reducedMotionQuery.matches ? 0 : 620);
 };
@@ -1023,6 +1060,16 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
     }
 
     event.preventDefault();
+
+    if (target.matches("[data-menu-detail-section]")) {
+      showMenuPage(target);
+      return;
+    }
+
+    hideMenuPage();
+    if (window.location.hash.startsWith("#menu-") || target === scrollRoot) {
+      window.history.pushState(null, "", targetId);
+    }
     scrollToTarget(target);
   });
 });
@@ -1057,12 +1104,28 @@ if ("IntersectionObserver" in window && !reducedMotionQuery.matches) {
   }
 }
 
-const initialTarget = window.location.hash
-  ? document.querySelector(window.location.hash)
-  : null;
+const handleHashNavigation = (behavior = "smooth") => {
+  const target = window.location.hash ? document.querySelector(window.location.hash) : null;
 
-if (initialTarget && initialTarget !== scrollRoot) {
-  window.requestAnimationFrame(() => scrollToTarget(initialTarget, "auto"));
+  if (!target) {
+    hideMenuPage();
+    return;
+  }
+
+  if (target.matches("[data-menu-detail-section]")) {
+    showMenuPage(target, { updateHash: false });
+    return;
+  }
+
+  hideMenuPage();
+
+  scrollToTarget(target, behavior);
+};
+
+window.addEventListener("hashchange", () => handleHashNavigation());
+
+if (window.location.hash) {
+  window.requestAnimationFrame(() => handleHashNavigation("auto"));
 }
 
 const hero = document.querySelector(".hero");
