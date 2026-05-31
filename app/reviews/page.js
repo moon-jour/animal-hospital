@@ -19,8 +19,6 @@ export default async function ReviewsPage() {
       </header>
       <section className="reviews-main">
         <h1>수술 후기</h1>
-        <p>관리자가 직접 정리한 수술 사례와 회복 과정을 공개된 후기만 모아 보여드립니다.</p>
-
         <ReviewsBoard reviews={reviews} />
       </section>
     </main>

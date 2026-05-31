@@ -221,6 +221,20 @@ test("admin review mutations validate CSRF, payloads, publish state, and author 
   await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
   await expect(page.getByAltText(`${created.title} 썸네일`)).toBeVisible();
   await expect(page.getByText("2026.05.01 - 2026.05.05")).toBeVisible();
+  await expect(page.getByText("관리자가 직접 정리한 수술 사례와 회복 과정을 공개된 후기만 모아 보여드립니다.")).toHaveCount(0);
+  const reviewsLayout = await page.evaluate(() => {
+    const header = document.querySelector(".reviews-header")?.getBoundingClientRect();
+    const title = document.querySelector(".reviews-main h1");
+
+    return {
+      bodyOverflowY: getComputedStyle(document.body).overflowY,
+      headerHeight: Math.round(header?.height || 0),
+      titleFontSize: Number.parseFloat(getComputedStyle(title).fontSize),
+    };
+  });
+  expect(reviewsLayout.bodyOverflowY).toBe("auto");
+  expect(reviewsLayout.headerHeight).toBeGreaterThanOrEqual(96);
+  expect(reviewsLayout.titleFontSize).toBeLessThanOrEqual(56);
   await page.goto(`/reviews/${created.slug}`);
   await expect(page.getByRole("heading", { name: created.title })).toBeVisible();
   await expect(page.locator(".review-detail__gallery img")).toHaveCount(2);
