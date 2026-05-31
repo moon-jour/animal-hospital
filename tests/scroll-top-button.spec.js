@@ -141,6 +141,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
       viewportHeight: window.innerHeight,
       mainMenuDetailCount: scrollRoot.querySelectorAll(".menu-detail-section").length,
       menuPageDetailCount: document.querySelectorAll(".menu-page-root .menu-detail-section").length,
+      menuPagePanelCount: document.querySelectorAll(".menu-page-root [data-menu-detail-panel]").length,
       panelHeights: panels.map((panel) => Math.round(panel.getBoundingClientRect().height)),
     };
   });
@@ -165,6 +166,7 @@ test("snap panels fill the visible area below the header", async ({ page }) => {
   expect(measurements.panelIds).toEqual(["병원 메인 이미지", "about", "space", "hours", "doctors", "services"]);
   expect(measurements.mainMenuDetailCount).toBe(0);
   expect(measurements.menuPageDetailCount).toBe(6);
+  expect(measurements.menuPagePanelCount).toBe(25);
   expect(measurements.pageTextIncludesLaparoscopic).toBe(false);
   expect(measurements.rootHeight).toBe(measurements.viewportHeight);
   expect(measurements.panelHeights.length).toBe(6);
@@ -213,13 +215,19 @@ test("header dropdown, full menu, and left section menu follow the reference lay
     const submenuStyle = getComputedStyle(submenu);
     const menuPage = document.querySelector(".menu-page-root");
     const activeMenuSection = document.querySelector(".menu-page-root .menu-detail-section.is-active");
+    const activePanel = activeMenuSection.querySelector("[data-menu-detail-panel]");
+    const activeLink = activeMenuSection.querySelector("[data-menu-detail-jump].is-active");
 
     return {
       activeMenuSectionId: activeMenuSection?.id,
+      activePanelId: activePanel?.id,
+      activePanelHeight: Math.round(activePanel?.getBoundingClientRect().height ?? 0),
+      activeSubNavText: activeLink?.textContent.trim(),
       locationHash: window.location.hash,
       menuPageActive: menuPage.classList.contains("is-active"),
       menuPageAriaHidden: menuPage.getAttribute("aria-hidden"),
       menuPageDisplay: getComputedStyle(activeMenuSection).display,
+      menuScrollSnapType: getComputedStyle(activeMenuSection.querySelector("[data-menu-detail-scroll]")).scrollSnapType,
       opacity: submenuStyle.opacity,
       scrollRootHidden: document.querySelector("main#top").getAttribute("aria-hidden"),
       visibility: submenuStyle.visibility,
@@ -227,10 +235,14 @@ test("header dropdown, full menu, and left section menu follow the reference lay
   });
 
   expect(clickedDropdown.activeMenuSectionId).toBe("menu-about");
-  expect(clickedDropdown.locationHash).toBe("#menu-about");
+  expect(clickedDropdown.activePanelId).toBe("menu-about-mission");
+  expect(clickedDropdown.activePanelHeight).toBe(800);
+  expect(clickedDropdown.activeSubNavText).toContain("미션/비전");
+  expect(clickedDropdown.locationHash).toBe("#menu-about-mission");
   expect(clickedDropdown.menuPageActive).toBe(true);
   expect(clickedDropdown.menuPageAriaHidden).toBe("false");
   expect(clickedDropdown.menuPageDisplay).toBe("flex");
+  expect(clickedDropdown.menuScrollSnapType).toBe("y mandatory");
   expect(clickedDropdown.opacity).toBe("0");
   expect(clickedDropdown.scrollRootHidden).toBe("true");
   expect(clickedDropdown.visibility).toBe("hidden");
@@ -296,20 +308,109 @@ test("header dropdown, full menu, and left section menu follow the reference lay
 
   const menuDetailSections = await page.evaluate(() => {
     return Array.from(document.querySelectorAll(".menu-detail-section")).map((section) => ({
-      cardCount: section.querySelectorAll(".menu-detail-grid article").length,
       id: section.id,
+      navCount: section.querySelectorAll("[data-menu-detail-jump]").length,
+      panelCount: section.querySelectorAll("[data-menu-detail-panel]").length,
       title: section.querySelector("h2").textContent.trim(),
     }));
   });
 
   expect(menuDetailSections).toEqual([
-    { cardCount: 5, id: "menu-about", title: "병원소개" },
-    { cardCount: 5, id: "menu-surgery", title: "외과센터" },
-    { cardCount: 4, id: "menu-imaging", title: "영상진단센터" },
-    { cardCount: 4, id: "menu-rehab", title: "재활센터" },
-    { cardCount: 4, id: "menu-guide", title: "진료안내" },
-    { cardCount: 3, id: "menu-community", title: "커뮤니티" },
+    { id: "menu-about", navCount: 5, panelCount: 5, title: "미션/비전" },
+    { id: "menu-surgery", navCount: 5, panelCount: 5, title: "외과 수술" },
+    { id: "menu-imaging", navCount: 4, panelCount: 4, title: "영상 장비" },
+    { id: "menu-rehab", navCount: 4, panelCount: 4, title: "재활 치료" },
+    { id: "menu-guide", navCount: 4, panelCount: 4, title: "24시간 진료" },
+    { id: "menu-community", navCount: 3, panelCount: 3, title: "공지사항" },
   ]);
+});
+
+test("menu detail pages scroll between dropdown submenu sections", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#menu-surgery");
+  await page.waitForTimeout(420);
+
+  const initialMenu = await page.evaluate(() => {
+    const section = document.querySelector(".menu-detail-section.is-active");
+    const scrollBox = section.querySelector("[data-menu-detail-scroll]");
+    const panels = Array.from(section.querySelectorAll("[data-menu-detail-panel]"));
+    const activeLink = section.querySelector("[data-menu-detail-jump].is-active");
+
+    return {
+      activeLink: activeLink?.textContent.trim(),
+      firstPanel: panels[0].id,
+      panelHeight: Math.round(panels[0].getBoundingClientRect().height),
+      panelIds: panels.map((panel) => panel.id),
+      scrollHeight: Math.round(scrollBox.scrollHeight),
+      scrollSnapType: getComputedStyle(scrollBox).scrollSnapType,
+      scrollTop: Math.round(scrollBox.scrollTop),
+      sectionId: section.id,
+    };
+  });
+
+  expect(initialMenu.sectionId).toBe("menu-surgery");
+  expect(initialMenu.firstPanel).toBe("menu-surgery-general");
+  expect(initialMenu.activeLink).toContain("외과 수술");
+  expect(initialMenu.panelHeight).toBe(800);
+  expect(initialMenu.panelIds).toEqual([
+    "menu-surgery-general",
+    "menu-surgery-patella",
+    "menu-surgery-cruciate",
+    "menu-surgery-fracture",
+    "menu-surgery-tumor",
+  ]);
+  expect(initialMenu.scrollHeight).toBe(initialMenu.panelHeight * initialMenu.panelIds.length);
+  expect(initialMenu.scrollSnapType).toBe("y mandatory");
+  expect(initialMenu.scrollTop).toBe(0);
+
+  await page.evaluate(() => {
+    const scrollBox = document.querySelector(".menu-detail-section.is-active [data-menu-detail-scroll]");
+    scrollBox.scrollTo({ top: scrollBox.clientHeight, behavior: "auto" });
+  });
+  await page.waitForTimeout(120);
+
+  const afterScroll = await page.evaluate(() => {
+    const section = document.querySelector(".menu-detail-section.is-active");
+    const scrollBox = section.querySelector("[data-menu-detail-scroll]");
+    const activeLink = section.querySelector("[data-menu-detail-jump].is-active");
+
+    return {
+      activeLink: activeLink?.textContent.trim(),
+      scrollTop: Math.round(scrollBox.scrollTop),
+    };
+  });
+
+  expect(afterScroll.activeLink).toContain("슬개골탈구");
+  expect(afterScroll.scrollTop).toBe(initialMenu.panelHeight);
+
+  await page.getByRole("link", { name: "04 골절" }).click();
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const scrollBox = document.querySelector(".menu-detail-section.is-active [data-menu-detail-scroll]");
+
+          return Math.round(scrollBox.scrollTop);
+        }),
+      { timeout: 1600 },
+    )
+    .toBe(initialMenu.panelHeight * 3);
+
+  const afterJump = await page.evaluate(() => {
+    const section = document.querySelector(".menu-detail-section.is-active");
+    const scrollBox = section.querySelector("[data-menu-detail-scroll]");
+    const activeLink = section.querySelector("[data-menu-detail-jump].is-active");
+
+    return {
+      activeLink: activeLink?.textContent.trim(),
+      hash: window.location.hash,
+      scrollTop: Math.round(scrollBox.scrollTop),
+    };
+  });
+
+  expect(afterJump.activeLink).toContain("골절");
+  expect(afterJump.hash).toBe("#menu-surgery-fracture");
+  expect(afterJump.scrollTop).toBe(initialMenu.panelHeight * 3);
 });
 
 test("reveal sections fade in slowly every time they are entered from either direction", async ({ page }) => {

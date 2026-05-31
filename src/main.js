@@ -21,11 +21,11 @@ const primaryMenuItems = [
     href: "#menu-about",
     lead: "병원의 방향과 의료진, 공간 정보를 한 번에 확인할 수 있습니다.",
     subItems: [
-      { label: "미션/비전", href: "#menu-about", description: "24시간 동물의료센터의 진료 철학과 운영 방향" },
-      { label: "의료진소개", href: "#menu-about", description: "두 대표원장 중심의 책임 진료 체계" },
-      { label: "병원둘러보기", href: "#menu-about", description: "진료실, 처치실, 수술실, 대기 공간 안내" },
-      { label: "보유장비", href: "#menu-about", description: "검사와 수술을 위한 주요 의료 장비" },
-      { label: "진료시간/오시는길", href: "#menu-about", description: "24시간 진료와 내원 정보" },
+      { label: "미션/비전", href: "#menu-about-mission", description: "24시간 동물의료센터의 진료 철학과 운영 방향" },
+      { label: "의료진소개", href: "#menu-about-doctors", description: "두 대표원장 중심의 책임 진료 체계" },
+      { label: "병원둘러보기", href: "#menu-about-space", description: "진료실, 처치실, 수술실, 대기 공간 안내" },
+      { label: "보유장비", href: "#menu-about-equipment", description: "검사와 수술을 위한 주요 의료 장비" },
+      { label: "진료시간/오시는길", href: "#menu-about-visit", description: "24시간 진료와 내원 정보" },
     ],
   },
   {
@@ -33,11 +33,11 @@ const primaryMenuItems = [
     href: "#menu-surgery",
     lead: "수술 상담부터 처치, 회복 계획까지 한 흐름으로 연결합니다.",
     subItems: [
-      { label: "외과 수술", href: "#menu-surgery", description: "정밀한 술전 평가와 수술 계획" },
-      { label: "슬개골탈구", href: "#menu-surgery", description: "보행 상태와 단계별 수술 상담" },
-      { label: "십자인대", href: "#menu-surgery", description: "파열 진단과 안정적인 회복 관리" },
-      { label: "골절", href: "#menu-surgery", description: "응급 처치부터 고정 수술까지" },
-      { label: "종양 수술", href: "#menu-surgery", description: "검사 결과 기반의 수술 범위 상담" },
+      { label: "외과 수술", href: "#menu-surgery-general", description: "정밀한 술전 평가와 수술 계획" },
+      { label: "슬개골탈구", href: "#menu-surgery-patella", description: "보행 상태와 단계별 수술 상담" },
+      { label: "십자인대", href: "#menu-surgery-cruciate", description: "파열 진단과 안정적인 회복 관리" },
+      { label: "골절", href: "#menu-surgery-fracture", description: "응급 처치부터 고정 수술까지" },
+      { label: "종양 수술", href: "#menu-surgery-tumor", description: "검사 결과 기반의 수술 범위 상담" },
     ],
   },
   {
@@ -45,10 +45,10 @@ const primaryMenuItems = [
     href: "#menu-imaging",
     lead: "검사 장비와 판독 흐름을 정리해 진료 판단의 정확도를 높입니다.",
     subItems: [
-      { label: "영상 장비", href: "#menu-imaging", description: "검사 목적에 맞춘 장비 운용" },
-      { label: "CT", href: "#menu-imaging", description: "골격, 흉복부, 종양 평가를 위한 단층 영상" },
-      { label: "초음파", href: "#menu-imaging", description: "복부 장기와 연부조직 실시간 평가" },
-      { label: "방사선", href: "#menu-imaging", description: "기초 검사와 수술 전후 상태 확인" },
+      { label: "영상 장비", href: "#menu-imaging-equipment", description: "검사 목적에 맞춘 장비 운용" },
+      { label: "CT", href: "#menu-imaging-ct", description: "골격, 흉복부, 종양 평가를 위한 단층 영상" },
+      { label: "초음파", href: "#menu-imaging-ultrasound", description: "복부 장기와 연부조직 실시간 평가" },
+      { label: "방사선", href: "#menu-imaging-xray", description: "기초 검사와 수술 전후 상태 확인" },
     ],
   },
   {
@@ -56,10 +56,10 @@ const primaryMenuItems = [
     href: "#menu-rehab",
     lead: "수술 후 회복과 만성 통증 관리를 위해 단계별 재활 계획을 세웁니다.",
     subItems: [
-      { label: "재활 치료", href: "#menu-rehab", description: "상태별 운동 범위와 근력 회복 관리" },
-      { label: "레이저치료", href: "#menu-rehab", description: "통증과 염증 완화를 위한 보조 치료" },
-      { label: "체외충격파", href: "#menu-rehab", description: "조직 회복을 돕는 비침습 치료" },
-      { label: "회복 관리", href: "#menu-rehab", description: "수술 후 생활 관리와 재진 계획" },
+      { label: "재활 치료", href: "#menu-rehab-program", description: "상태별 운동 범위와 근력 회복 관리" },
+      { label: "레이저치료", href: "#menu-rehab-laser", description: "통증과 염증 완화를 위한 보조 치료" },
+      { label: "체외충격파", href: "#menu-rehab-shockwave", description: "조직 회복을 돕는 비침습 치료" },
+      { label: "회복 관리", href: "#menu-rehab-recovery", description: "수술 후 생활 관리와 재진 계획" },
     ],
   },
   {
@@ -67,10 +67,10 @@ const primaryMenuItems = [
     href: "#menu-guide",
     lead: "진료 시간, 야간 내원, 응급 상황의 연락 방법을 안내합니다.",
     subItems: [
-      { label: "24시간 진료", href: "#menu-guide", description: "연중무휴 24시간 진료 체계" },
-      { label: "야간 응급", href: "#menu-guide", description: "야간 내원 전 전화 연결 안내" },
-      { label: "내원 안내", href: "#menu-guide", description: "접수, 검사, 상담 흐름" },
-      { label: "전화 문의", href: "#menu-guide", description: hospital.phone },
+      { label: "24시간 진료", href: "#menu-guide-24h", description: "연중무휴 24시간 진료 체계" },
+      { label: "야간 응급", href: "#menu-guide-night", description: "야간 내원 전 전화 연결 안내" },
+      { label: "내원 안내", href: "#menu-guide-visit", description: "접수, 검사, 상담 흐름" },
+      { label: "전화 문의", href: "#menu-guide-call", description: hospital.phone },
     ],
   },
   {
@@ -78,9 +78,9 @@ const primaryMenuItems = [
     href: "#menu-community",
     lead: "병원 소식과 보호자 문의를 모아 안내합니다.",
     subItems: [
-      { label: "공지사항", href: "#menu-community", description: "병원 운영과 진료 관련 안내" },
-      { label: "상담 문의", href: "#menu-community", description: "진료 전 확인이 필요한 내용 접수" },
-      { label: "자주 묻는 질문", href: "#menu-community", description: "내원과 진료 준비에 대한 답변" },
+      { label: "공지사항", href: "#menu-community-notice", description: "병원 운영과 진료 관련 안내" },
+      { label: "상담 문의", href: "#menu-community-contact", description: "진료 전 확인이 필요한 내용 접수" },
+      { label: "자주 묻는 질문", href: "#menu-community-faq", description: "내원과 진료 준비에 대한 답변" },
     ],
   },
 ];
@@ -88,30 +88,48 @@ const menuDetailSectionMarkup = primaryMenuItems
   .map(
     ({ label, href, lead, subItems }, menuIndex) => `
       <section class="menu-detail-section" id="${href.slice(1)}" data-menu-detail-section>
-        <div class="menu-detail-section__inner">
-          <div class="menu-detail-section__heading">
-            <span>${String(menuIndex + 1).padStart(2, "0")}</span>
-            <p class="section-kicker">MENU</p>
-            <h2>${label}</h2>
-            <p>${lead}</p>
-          </div>
-          <div class="menu-detail-section__placeholder" aria-hidden="true">
-            <span>${label}</span>
-          </div>
-          <div class="menu-detail-grid" aria-label="${label} 하위 메뉴">
-            ${subItems
-              .map(
-                ({ label: subLabel, description }, index) => `
-                  <article>
-                    <span>${String(index + 1).padStart(2, "0")}</span>
-                    <h3>${subLabel}</h3>
-                    <p>${description}</p>
-                  </article>
-                `,
-              )
-              .join("")}
-          </div>
+        <div class="menu-detail-scroll" data-menu-detail-scroll>
+          ${subItems
+            .map(
+              ({ label: subLabel, href: subHref, description }, index) => `
+                <article
+                  class="menu-detail-panel"
+                  id="${subHref.slice(1)}"
+                  data-menu-detail-panel
+                  data-parent-menu="${href.slice(1)}"
+                >
+                  <div class="menu-detail-section__inner">
+                    <div class="menu-detail-section__heading">
+                      <span>${String(menuIndex + 1).padStart(2, "0")}-${String(index + 1).padStart(2, "0")}</span>
+                      <p class="section-kicker">${label}</p>
+                      <h2>${subLabel}</h2>
+                      <p>${description}</p>
+                    </div>
+                    <div class="menu-detail-section__placeholder" aria-hidden="true">
+                      <span>${subLabel}</span>
+                    </div>
+                    <div class="menu-detail-copy">
+                      <p>${lead}</p>
+                      <strong>${String(index + 1).padStart(2, "0")} / ${String(subItems.length).padStart(2, "0")}</strong>
+                    </div>
+                  </div>
+                </article>
+              `,
+            )
+            .join("")}
         </div>
+        <nav class="menu-detail-nav" aria-label="${label} 하위 메뉴">
+          ${subItems
+            .map(
+              ({ label: subLabel, href: subHref }, index) => `
+                <a href="${subHref}" data-menu-detail-jump>
+                  <span>${String(index + 1).padStart(2, "0")}</span>
+                  ${subLabel}
+                </a>
+              `,
+            )
+            .join("")}
+        </nav>
       </section>
     `,
   )
@@ -568,6 +586,7 @@ const globalMenu = document.querySelector(".global-menu");
 const globalMenuCloseButton = document.querySelector(".global-menu__close");
 const menuPageRoot = document.querySelector(".menu-page-root");
 const menuDetailSections = Array.from(document.querySelectorAll("[data-menu-detail-section]"));
+const menuDetailPanels = Array.from(document.querySelectorAll("[data-menu-detail-panel]"));
 const SNAP_SCROLL_DURATION = 940;
 const SNAP_SETTLE_LOCK_MS = 220;
 const WHEEL_DELTA_THRESHOLD = 360;
@@ -775,8 +794,84 @@ const updateScrollState = () => {
   updateSectionNavigation();
 };
 
-const showMenuPage = (target, { updateHash = true } = {}) => {
-  if (!target || !menuPageRoot) {
+const getMenuSectionForTarget = (target) => {
+  if (!target) {
+    return null;
+  }
+
+  if (target.matches("[data-menu-detail-section]")) {
+    return target;
+  }
+
+  return target.closest("[data-menu-detail-section]");
+};
+
+const getMenuPanelForTarget = (target, section) => {
+  if (target?.matches("[data-menu-detail-panel]")) {
+    return target;
+  }
+
+  return section?.querySelector("[data-menu-detail-panel]") ?? null;
+};
+
+const updateMenuDetailNavigation = (section) => {
+  const scrollBox = section?.querySelector("[data-menu-detail-scroll]");
+  const panels = Array.from(section?.querySelectorAll("[data-menu-detail-panel]") ?? []);
+  const links = Array.from(section?.querySelectorAll("[data-menu-detail-jump]") ?? []);
+
+  if (!scrollBox || panels.length === 0) {
+    return;
+  }
+
+  const activeIndex = clamp(Math.round(scrollBox.scrollTop / Math.max(1, scrollBox.clientHeight)), 0, panels.length - 1);
+  const activePanel = panels[activeIndex];
+
+  for (const link of links) {
+    const isActive = link.hash === `#${activePanel.id}`;
+
+    link.classList.toggle("is-active", isActive);
+    link.toggleAttribute("aria-current", isActive);
+  }
+};
+
+const scrollMenuSectionToPanel = (section, panel, behavior = "auto") => {
+  const scrollBox = section?.querySelector("[data-menu-detail-scroll]");
+  const panels = Array.from(section?.querySelectorAll("[data-menu-detail-panel]") ?? []);
+  const panelIndex = panels.indexOf(panel);
+
+  if (!scrollBox || panelIndex < 0) {
+    updateMenuDetailNavigation(section);
+    return;
+  }
+
+  scrollBox.scrollTo({
+    top: panelIndex * scrollBox.clientHeight,
+    behavior: reducedMotionQuery.matches ? "auto" : behavior,
+  });
+  window.setTimeout(() => updateMenuDetailNavigation(section), behavior === "auto" ? 0 : 360);
+};
+
+const scrollMenuDetailByDirection = (direction) => {
+  const section = document.querySelector(".menu-detail-section.is-active");
+  const scrollBox = section?.querySelector("[data-menu-detail-scroll]");
+  const panels = Array.from(section?.querySelectorAll("[data-menu-detail-panel]") ?? []);
+
+  if (!section || !scrollBox || panels.length === 0) {
+    return;
+  }
+
+  const currentIndex = clamp(Math.round(scrollBox.scrollTop / Math.max(1, scrollBox.clientHeight)), 0, panels.length - 1);
+  const nextIndex = clamp(currentIndex + direction, 0, panels.length - 1);
+
+  scrollMenuSectionToPanel(section, panels[nextIndex], "smooth");
+};
+
+const showMenuPage = (target, { behavior = "auto", updateHash = true } = {}) => {
+  const menuSection = getMenuSectionForTarget(target);
+  const targetPanel = getMenuPanelForTarget(target, menuSection);
+  const nextHash = target?.matches("[data-menu-detail-panel]") ? `#${target.id}` : `#${menuSection?.id}`;
+
+  if (!menuSection || !targetPanel || !menuPageRoot) {
     return;
   }
 
@@ -788,18 +883,19 @@ const showMenuPage = (target, { updateHash = true } = {}) => {
   scrollRoot?.setAttribute("aria-hidden", "true");
 
   for (const section of menuDetailSections) {
-    const isActive = section === target;
+    const isActive = section === menuSection;
 
     section.classList.toggle("is-active", isActive);
     section.setAttribute("aria-hidden", String(!isActive));
   }
 
   menuPageRoot.scrollTo({ top: 0, behavior: "auto" });
+  scrollMenuSectionToPanel(menuSection, targetPanel, behavior);
   sectionMenu?.classList.add("is-hidden");
   scrollTopButton?.classList.remove("is-at-top");
 
-  if (updateHash && window.location.hash !== `#${target.id}`) {
-    window.history.pushState(null, "", `#${target.id}`);
+  if (updateHash && window.location.hash !== nextHash) {
+    window.history.pushState(null, "", nextHash);
   }
 };
 
@@ -814,6 +910,12 @@ const hideMenuPage = () => {
     section.setAttribute("aria-hidden", "true");
   }
 };
+
+for (const section of menuDetailSections) {
+  section.querySelector("[data-menu-detail-scroll]")?.addEventListener("scroll", () => {
+    updateMenuDetailNavigation(section);
+  }, { passive: true });
+}
 
 const openGlobalMenu = () => {
   globalMenu?.classList.add("is-active");
@@ -993,6 +1095,12 @@ document.addEventListener("keydown", (event) => {
     event.key === "PageUp" ||
     (event.key === " " && event.shiftKey);
 
+  if (document.body.classList.contains("is-menu-page-active") && (goesDown || goesUp)) {
+    event.preventDefault();
+    scrollMenuDetailByDirection(goesDown ? 1 : -1);
+    return;
+  }
+
   if (goesDown || goesUp) {
     event.preventDefault();
     if (scrollAnimationFrame) {
@@ -1061,8 +1169,10 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
 
     event.preventDefault();
 
-    if (target.matches("[data-menu-detail-section]")) {
-      showMenuPage(target);
+    if (target.matches("[data-menu-detail-section], [data-menu-detail-panel]")) {
+      showMenuPage(target, {
+        behavior: document.body.classList.contains("is-menu-page-active") ? "smooth" : "auto",
+      });
       return;
     }
 
@@ -1112,7 +1222,7 @@ const handleHashNavigation = (behavior = "smooth") => {
     return;
   }
 
-  if (target.matches("[data-menu-detail-section]")) {
+  if (target.matches("[data-menu-detail-section], [data-menu-detail-panel]")) {
     showMenuPage(target, { updateHash: false });
     return;
   }
